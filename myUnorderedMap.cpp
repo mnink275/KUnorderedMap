@@ -1,7 +1,8 @@
 #include "myUnorderedMap.h"
 
 template<class Key, class T>
-myUnorderedMap<Key, T>::myUnorderedMap() : size(10)
+myUnorderedMap<Key, T>::myUnorderedMap() : size(10), begin(nullptr),
+    cbegin(nullptr), max_hash_value(0)
 {
     cout << "Map Constructor" << endl;
     hash_set.resize(size, nullptr);
@@ -19,16 +20,31 @@ template<class Key, class T>
 T& myUnorderedMap<Key, T>::operator[](const Key& key)
 {
     size_t hash_val = hash_func(key);
+
     if (hash_set[hash_val] == nullptr)
     {
-        // if doesn't exists, create new node 
+        // if node with corresponding hash_val doesn't exists,
+        // create new node, connect it to the main linked list and
+        // put it's pointer to the hash_set.
         ListNode<Key, T>* node = new ListNode<Key, T>(key, hash_val);
+        if (isEmpty())
+        {
+            begin = node;
+            cbegin = node;
+        }
+        else
+        {
+            cbegin->next = node;
+            cbegin = node;
+        }
         hash_set[hash_val] = node;
+        
         return node->value_type.second;
     }
     else
     {
-        // if exists, create new node and push back after another node
+        // if node with corresponding hash_val exists,
+        // create new node and connect it to the main linked list.
         ListNode<Key, T>* it = hash_set[hash_val];
         while (it->next != nullptr)
         {
@@ -36,9 +52,15 @@ T& myUnorderedMap<Key, T>::operator[](const Key& key)
         }
         ListNode<Key, T>* node = new ListNode<Key, T>(key, hash_val);
         it->next = node;
+        
+        if (node->hash_val > max_hash_value)
+        {
+            max_hash_value = hash_val;
+            cbegin = node;
+        }
+
         return node->value_type.second;
     }
-    
 }
 
 
@@ -53,17 +75,11 @@ int  myUnorderedMap<Key, T>::hash_func(const Key& key)
 template<class Key, class T>
 void myUnorderedMap<Key, T>::print()
 {
-    for (const auto& pListNode : hash_set)
+    ListNode<Key, T>* it = begin;
+    while (it != nullptr)
     {
-        if (pListNode)
-        {
-            ListNode<Key, T>* it = pListNode;
-            while (it != nullptr)
-            {
-                cout << it->value_type.second << " ";
-                it = it->next;
-            }
-        }
+        cout << it->value_type.second << " ";
+        it = it->next;
     }
     cout << endl;
 }

@@ -12,8 +12,6 @@ struct ListNode {
     ListNode() : hash_val(0), next(nullptr), value_type(0, 0) {}
     ListNode(const Key& _key, size_t _hash_val)
         : hash_val(_hash_val), next(nullptr), value_type(_key, 0) {}
-    /*ListNode(int x) : val(x), next(nullptr) {}
-    ListNode(int x, ListNode* next) : val(x), next(next) {}*/
 };
 
 
@@ -27,8 +25,11 @@ public:
     ~myUnorderedMap();
     bool isEmpty();
 private:
-    vector<ListNode<Key, T>*> hash_set;
     int hash_func(const Key& key);
-    size_t size;
 
+    vector<ListNode<Key, T>*> hash_set;
+    size_t size;
+    ListNode<Key, T>* begin;
+    ListNode<Key, T>* cbegin;
+    int max_hash_value;
 };
