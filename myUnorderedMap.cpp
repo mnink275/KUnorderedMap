@@ -65,9 +65,9 @@ T& myUnorderedMap<Key, T>::operator[](const Key& key)
 
 
 template<class Key, class T>
-int  myUnorderedMap<Key, T>::hash_func(const Key& key)
+int myUnorderedMap<Key, T>::hash_func(const Key& key)
 {
-    int hash_val = key % 10;
+    int hash_val = static_cast<int>(key) % 10;
     return hash_val;
 }
 
@@ -97,3 +97,4 @@ bool myUnorderedMap<Key, T>::isEmpty()
 }
 
 template class myUnorderedMap<int, int>;
+template class myUnorderedMap<double, double>;
