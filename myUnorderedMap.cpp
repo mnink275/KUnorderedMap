@@ -21,12 +21,14 @@ T& myUnorderedMap<Key, T>::operator[](const Key& key)
     size_t hash_val = hash_func(key);
     if (hash_set[hash_val] == nullptr)
     {
+        // if doesn't exists, create new node 
         ListNode<Key, T>* node = new ListNode<Key, T>(key, hash_val);
         hash_set[hash_val] = node;
         return node->value_type.second;
     }
     else
     {
+        // if exists, create new node and push back after another node
         ListNode<Key, T>* it = hash_set[hash_val];
         while (it->next != nullptr)
         {
@@ -66,5 +68,16 @@ void myUnorderedMap<Key, T>::print()
     cout << endl;
 }
 
+
+template<class Key, class T>
+bool myUnorderedMap<Key, T>::isEmpty()
+{
+    bool isEmpty = 1;
+    for (const auto& pListNode : hash_set)
+    {
+        if (pListNode != nullptr) isEmpty = 0;
+    }
+    return isEmpty;
+}
 
 template class myUnorderedMap<int, int>;

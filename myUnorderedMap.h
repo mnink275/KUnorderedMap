@@ -25,8 +25,10 @@ public:
     T& operator[](const Key& key);
     void print();
     ~myUnorderedMap();
+    bool isEmpty();
 private:
     vector<ListNode<Key, T>*> hash_set;
     int hash_func(const Key& key);
     size_t size;
+
 };
