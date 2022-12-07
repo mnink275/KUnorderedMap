@@ -1,7 +1,7 @@
 #include "myUnorderedMap.h"
 
 template<class Key, class T>
-myUnorderedMap<Key, T>::myUnorderedMap() : size(10), begin(nullptr),
+myUnorderedMap<Key, T>::myUnorderedMap() : size(307), begin(nullptr),
     cbegin(nullptr), max_hash_value(0)
 {
     cout << "Map Constructor" << endl;
@@ -67,7 +67,7 @@ T& myUnorderedMap<Key, T>::operator[](const Key& key)
 template<class Key, class T>
 int myUnorderedMap<Key, T>::hash_func(const Key& key)
 {
-    int hash_val = static_cast<int>(key) % 10;
+    int hash_val = static_cast<int>(key) % size;
     return hash_val;
 }
 
