@@ -1,4 +1,5 @@
 #pragma once
+
 #include <iostream>
 #include <vector>
 
@@ -20,9 +21,14 @@ class myUnorderedMap
 {
 public:
     myUnorderedMap();
+    myUnorderedMap(const myUnorderedMap& other_map) = delete;
+    myUnorderedMap& operator=(const myUnorderedMap& other_map) = delete;
+    myUnorderedMap(const myUnorderedMap&& other_map) noexcept;
+    myUnorderedMap& operator=(myUnorderedMap&& other_map) noexcept;
+    ~myUnorderedMap();
+
     T& operator[](const Key& key);
     void print();
-    ~myUnorderedMap();
     bool isEmpty();
 private:
     int hash_func(const Key& key);

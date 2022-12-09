@@ -17,6 +17,32 @@ myUnorderedMap<Key, T>::~myUnorderedMap()
 
 
 template<class Key, class T>
+myUnorderedMap<Key, T>::myUnorderedMap(const myUnorderedMap&& other_map) noexcept
+{
+    // template + T&& = Universal reference
+    // Чтобы не перегружать функции для lvalue и rvalue, можно
+    // использовать std::forward, чтобы прокидывать нужный тип.
+    
+    // TODO
+}
+
+
+template<class Key, class T>
+myUnorderedMap<Key, T>& myUnorderedMap<Key, T>::operator=(myUnorderedMap&& other_map) noexcept
+{
+    cout << "operator=(T&& t)" << "\n";
+
+    if (this == &other_map) return *this;
+
+    hash_set = move(other_map.hash_set);
+
+    // erasing of the moved map 
+
+
+    return *this;
+}
+
+template<class Key, class T>
 T& myUnorderedMap<Key, T>::operator[](const Key& key)
 {
     size_t hash_val = hash_func(key);
