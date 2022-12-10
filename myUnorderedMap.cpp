@@ -1,10 +1,10 @@
 #include "myUnorderedMap.h"
 
 template<class Key, class T>
-myUnorderedMap<Key, T>::myUnorderedMap() : size(307), begin(nullptr),
+myUnorderedMap<Key, T>::myUnorderedMap() : size(7369), begin(nullptr),
     cbegin(nullptr), max_hash_value(0)
 {
-    cout << "Map Constructor" << endl;
+    //cout << "Map Constructor" << endl;
     hash_set.resize(size, nullptr);
 }
 
@@ -12,7 +12,10 @@ myUnorderedMap<Key, T>::myUnorderedMap() : size(307), begin(nullptr),
 template<class Key, class T>
 myUnorderedMap<Key, T>::~myUnorderedMap()
 {
-    cout << "~Map Destructor" << endl;
+    //cout << "Map ~Destructor" << endl;
+    // TODO
+    //dataErasing(begin);
+    cout << "Destructor!" << endl;
 }
 
 
@@ -23,21 +26,83 @@ myUnorderedMap<Key, T>::myUnorderedMap(const myUnorderedMap&& other_map) noexcep
     // „тобы не перегружать функции дл€ lvalue и rvalue, можно
     // использовать std::forward, чтобы прокидывать нужный тип.
     
-    // TODO
+    cout << "(T&& t)" << "\n";
+
 }
 
 
 template<class Key, class T>
-myUnorderedMap<Key, T>& myUnorderedMap<Key, T>::operator=(myUnorderedMap&& other_map) noexcept
+myUnorderedMap<Key, T>& myUnorderedMap<Key, T>
+    ::operator=(const myUnorderedMap& other_map)
 {
-    cout << "operator=(T&& t)" << "\n";
+    cout << "Copy constructor!" << endl;
 
     if (this == &other_map) return *this;
 
+    dataErasing(begin);
+
+    // Ќужно скопировать каждый узел и восстановить поинтеры!
+    hash_set = other_map.hash_set;
+    
+    ListNode<Key, T>* node = new ListNode<Key, T>(other_map.begin);
+    for (const ListNode<Key, T>* pListNode : hash_set)
+    {
+        if (pListNode == nullptr) continue;
+        pListNode = node;
+        while (node->next != nullptr
+            && node->hash_val == pListNode->hash_val)
+        {
+            ListNode<Key, T>* tmp = node;
+            node = new ListNode<Key, T>(node->next);
+            tmp->next = node;
+        }
+    }
+    
+    int left = 0;
+    while (left++)
+    {
+        if (hash_set[left] != nullptr)
+        {
+            begin = hash_set[left];
+            break;
+        }
+    }
+
+    int right = hash_set.size() - 1;
+    while (right--)
+    {
+        if (hash_set[right] != nullptr)
+        {
+            cbegin = hash_set[right];
+            break;
+        }
+    }
+
+    return *this;
+}
+
+
+template<class Key, class T>
+myUnorderedMap<Key, T>& myUnorderedMap<Key, T>
+    ::operator=(myUnorderedMap&& other_map) noexcept
+{
+    cout << "Move constructor!" << endl;
+
+    if (this == &other_map) return *this;
+
+    // deliting the data of the left object
+    // TODO
+    dataErasing(begin);
+    begin = nullptr;
+    cbegin = nullptr;
+
     hash_set = move(other_map.hash_set);
+    begin = other_map.begin;
+    cbegin = other_map.cbegin;
 
-    // erasing of the moved map 
-
+    // moved map erasing
+    other_map.begin = nullptr;
+    other_map.cbegin = nullptr;
 
     return *this;
 }
@@ -101,6 +166,7 @@ int myUnorderedMap<Key, T>::hash_func(const Key& key)
 template<class Key, class T>
 void myUnorderedMap<Key, T>::print()
 {
+    if (begin == nullptr) cout << "Called map is empty!" << endl;
     ListNode<Key, T>* it = begin;
     while (it != nullptr)
     {
@@ -121,6 +187,20 @@ bool myUnorderedMap<Key, T>::isEmpty()
     }
     return isEmpty;
 }
+
+
+template<class Key, class T>
+void myUnorderedMap<Key, T>::dataErasing(ListNode<Key, T>* root)
+{
+    ListNode<Key, T>* it;
+    while (root != nullptr)
+    {
+        it = root->next;
+        delete root;
+        root = it;
+    }
+}
+
 
 template class myUnorderedMap<int, int>;
 template class myUnorderedMap<double, double>;
