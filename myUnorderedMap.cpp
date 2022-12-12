@@ -39,21 +39,24 @@ myUnorderedMap<Key, T>& myUnorderedMap<Key, T>
 
     if (this == &other_map) return *this;
 
-    dataErasing(begin);
+    //dataErasing(begin);
 
-    // Нужно скопировать каждый узел и восстановить поинтеры!
+    // Нужно скопировать каждый узел и восстановить указатели.
     hash_set = other_map.hash_set;
     
-    ListNode<Key, T>* node = new ListNode<Key, T>(other_map.begin);
-    for (const ListNode<Key, T>* pListNode : hash_set)
+    shared_ptr<ListNode<Key, T>> node
+        = make_shared<ListNode<Key, T>>(other_map.begin);
+    /*ListNode<Key, T>* node = new ListNode<Key, T>(other_map.begin);*/
+    for (shared_ptr<ListNode<Key, T>> pListNode : hash_set)
     {
         if (pListNode == nullptr) continue;
         pListNode = node;
         while (node->next != nullptr
             && node->hash_val == pListNode->hash_val)
         {
-            ListNode<Key, T>* tmp = node;
-            node = new ListNode<Key, T>(node->next);
+            shared_ptr<ListNode<Key, T>> tmp = node;
+            node = make_shared<ListNode<Key, T>>(node->next);
+            /*node = new ListNode<Key, T>(node->next);*/
             tmp->next = node;
         }
     }
@@ -92,7 +95,7 @@ myUnorderedMap<Key, T>& myUnorderedMap<Key, T>
 
     // deliting the data of the left object
     // TODO
-    dataErasing(begin);
+    //dataErasing(begin);
     begin = nullptr;
     cbegin = nullptr;
 
@@ -107,6 +110,7 @@ myUnorderedMap<Key, T>& myUnorderedMap<Key, T>
     return *this;
 }
 
+
 template<class Key, class T>
 T& myUnorderedMap<Key, T>::operator[](const Key& key)
 {
@@ -117,7 +121,8 @@ T& myUnorderedMap<Key, T>::operator[](const Key& key)
         // if node with corresponding hash_val doesn't exists,
         // create new node, connect it to the main linked list and
         // put it's pointer to the hash_set.
-        ListNode<Key, T>* node = new ListNode<Key, T>(key, hash_val);
+        shared_ptr<ListNode<Key, T>> node
+            = make_shared<ListNode<Key, T>>(key, hash_val);
         if (isEmpty())
         {
             begin = node;
@@ -136,12 +141,13 @@ T& myUnorderedMap<Key, T>::operator[](const Key& key)
     {
         // if node with corresponding hash_val exists,
         // create new node and connect it to the main linked list.
-        ListNode<Key, T>* it = hash_set[hash_val];
+        shared_ptr<ListNode<Key, T>> it = hash_set[hash_val];
         while (it->next != nullptr)
         {
             it = it->next;
         }
-        ListNode<Key, T>* node = new ListNode<Key, T>(key, hash_val);
+        shared_ptr<ListNode<Key, T>> node
+            = make_shared<ListNode<Key, T>>(key, hash_val);
         it->next = node;
         
         if (node->hash_val > max_hash_value)
@@ -167,7 +173,7 @@ template<class Key, class T>
 void myUnorderedMap<Key, T>::print()
 {
     if (begin == nullptr) cout << "Called map is empty!" << endl;
-    ListNode<Key, T>* it = begin;
+    shared_ptr<ListNode<Key, T>> it = begin;
     while (it != nullptr)
     {
         cout << it->value_type.second << " ";
@@ -183,23 +189,27 @@ bool myUnorderedMap<Key, T>::isEmpty()
     bool isEmpty = 1;
     for (const auto& pListNode : hash_set)
     {
-        if (pListNode != nullptr) isEmpty = 0;
+        if (pListNode != nullptr)
+        {
+            isEmpty = 0;
+            break;
+        }
     }
     return isEmpty;
 }
 
 
-template<class Key, class T>
-void myUnorderedMap<Key, T>::dataErasing(ListNode<Key, T>* root)
-{
-    ListNode<Key, T>* it;
-    while (root != nullptr)
-    {
-        it = root->next;
-        delete root;
-        root = it;
-    }
-}
+//template<class Key, class T>
+//void myUnorderedMap<Key, T>::dataErasing(ListNode<Key, T>* root)
+//{
+//    ListNode<Key, T>* it;
+//    while (root != nullptr)
+//    {
+//        it = root->next;
+//        delete root;
+//        root = it;
+//    }
+//}
 
 
 template class myUnorderedMap<int, int>;

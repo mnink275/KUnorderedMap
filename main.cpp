@@ -1,6 +1,6 @@
-//#define _CRTDBG_MAP_ALLOC
-//#include <stdlib.h>
-//#include <crtdbg.h>
+#define _CRTDBG_MAP_ALLOC
+#include <stdlib.h>
+#include <crtdbg.h>
 
 #include <iostream>
 #include "myUnorderedMap.h"
@@ -17,7 +17,7 @@ int main()
     using namespace std::chrono;
     
 
-    for (int i = 0; i < 22000; i++)
+    for (int i = 0; i < 5; i++)
     {
         map[i] = i;
         map_reciver[i] = i;
@@ -27,9 +27,7 @@ int main()
     start_point = high_resolution_clock::now();
 
     /*map_reciver = std::move(map);*/
-    map_reciver = map;
-
-    
+    map_reciver.print();
 
     end_point = high_resolution_clock::now();
     auto start = time_point_cast<microseconds>(start_point).time_since_epoch().count();
@@ -39,6 +37,6 @@ int main()
     map.print();*/
 
 
-    //_CrtDumpMemoryLeaks();
+    _CrtDumpMemoryLeaks();
     return 0;
 }
