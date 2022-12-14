@@ -6,6 +6,7 @@ myUnorderedMap<Key, T>::myUnorderedMap() : size(7369), begin(nullptr),
 {
     //cout << "Map Constructor" << endl;
     hash_set.resize(size, nullptr);
+    int* memory_leak = new int[16];
 }
 
 
@@ -14,7 +15,6 @@ myUnorderedMap<Key, T>::~myUnorderedMap()
 {
     //cout << "Map ~Destructor" << endl;
     // TODO
-    //dataErasing(begin);
     cout << "Destructor!" << endl;
 }
 
@@ -38,8 +38,6 @@ myUnorderedMap<Key, T>& myUnorderedMap<Key, T>
     cout << "Copy constructor!" << endl;
 
     if (this == &other_map) return *this;
-
-    //dataErasing(begin);
 
     // Нужно скопировать каждый узел и восстановить указатели.
     hash_set = other_map.hash_set;
@@ -93,9 +91,6 @@ myUnorderedMap<Key, T>& myUnorderedMap<Key, T>
 
     if (this == &other_map) return *this;
 
-    // deliting the data of the left object
-    // TODO
-    //dataErasing(begin);
     begin = nullptr;
     cbegin = nullptr;
 
@@ -197,19 +192,6 @@ bool myUnorderedMap<Key, T>::isEmpty()
     }
     return isEmpty;
 }
-
-
-//template<class Key, class T>
-//void myUnorderedMap<Key, T>::dataErasing(ListNode<Key, T>* root)
-//{
-//    ListNode<Key, T>* it;
-//    while (root != nullptr)
-//    {
-//        it = root->next;
-//        delete root;
-//        root = it;
-//    }
-//}
 
 
 template class myUnorderedMap<int, int>;

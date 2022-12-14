@@ -1,7 +1,3 @@
-#define _CRTDBG_MAP_ALLOC
-#include <stdlib.h>
-#include <crtdbg.h>
-
 #include <iostream>
 #include "myUnorderedMap.h"
 #include <chrono>
@@ -36,7 +32,5 @@ int main()
     /*map_reciver.print();
     map.print();*/
 
-
-    _CrtDumpMemoryLeaks();
     return 0;
 }
