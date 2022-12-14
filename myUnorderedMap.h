@@ -2,7 +2,6 @@
 
 #include <iostream>
 #include <vector>
-#include <memory>
 
 using namespace std;
 
@@ -17,7 +16,7 @@ struct ListNode {
     ListNode(const Key& _key, size_t _hash_val, ListNode* _next)
         : hash_val(_hash_val), next(nullptr), value_type(_key, 0),
         next(_next) {}
-    explicit ListNode(const shared_ptr<ListNode<Key, T>> _node)
+    ListNode(const shared_ptr<ListNode<Key, T>> _node)
         : value_type(_node->value_type.first, _node->value_type.second),
         hash_val(_node->hash_val),
         next(_node->next)
@@ -43,6 +42,7 @@ public:
     bool isEmpty();
 private:
     int hash_func(const Key& key);
+    //void dataErasing(ListNode<Key, T>* root);
 
     vector<shared_ptr<ListNode<Key, T>>> hash_set;
     size_t size;
