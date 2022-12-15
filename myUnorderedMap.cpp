@@ -1,7 +1,7 @@
 #include "myUnorderedMap.h"
 
 template<class Key, class T>
-myUnorderedMap<Key, T>::myUnorderedMap() : size(7369), begin(nullptr),
+myUnorderedMap<Key, T>::myUnorderedMap() : size(701), begin(nullptr),
     cbegin(nullptr), max_hash_value(0)
 {
     cout << "Constructor!" << "\n";
@@ -10,14 +10,9 @@ myUnorderedMap<Key, T>::myUnorderedMap() : size(7369), begin(nullptr),
 
 
 template<class Key, class T>
-myUnorderedMap<Key, T>::~myUnorderedMap()
-{
-}
-template<class Key, class T>
 myUnorderedMap<Key, T>::myUnorderedMap(const myUnorderedMap& other_map)
 {
     cout << "Copy operator()!" << endl;
-    // TODO: BUG
     if (this == &other_map) return;
 
     hash_set = other_map.hash_set;
@@ -228,4 +223,6 @@ bool myUnorderedMap<Key, T>::isEmpty()
 
 
 template class myUnorderedMap<int, int>;
+template class myUnorderedMap<int, double>;
+template class myUnorderedMap<double, int>;
 template class myUnorderedMap<double, double>;
