@@ -10,46 +10,14 @@ myUnorderedMap<Key, T>::myUnorderedMap() : size(701), begin(nullptr),
 
 
 template<class Key, class T>
-myUnorderedMap<Key, T>::myUnorderedMap(const myUnorderedMap& other_map)
+myUnorderedMap<Key, T>
+    ::myUnorderedMap<Key, T>(const myUnorderedMap& other_map)
+    : size(701), begin(nullptr), cbegin(nullptr), max_hash_value(0)
 {
     cout << "Copy operator()!" << endl;
     if (this == &other_map) return;
 
-    hash_set = other_map.hash_set;
-    shared_ptr<ListNode<Key, T>> node
-        = make_shared<ListNode<Key, T>>(other_map.begin);
-    for (shared_ptr<ListNode<Key, T>> pListNode : hash_set)
-    {
-        if (pListNode == nullptr) continue;
-        pListNode = node;
-        while (node->next != nullptr
-            && node->hash_val == pListNode->hash_val)
-        {
-            shared_ptr<ListNode<Key, T>> tmp = node;
-            node = make_shared<ListNode<Key, T>>(node->next);
-            tmp->next = node;
-        }
-    }
-
-    int left = 0;
-    while (size--)
-    {
-        if (hash_set[left] != nullptr)
-        {
-            begin = hash_set[left++];
-            break;
-        }
-    }
-
-    int right = hash_set.size() - 1;
-    while (size--)
-    {
-        if (hash_set[right] != nullptr)
-        {
-            cbegin = hash_set[right--];
-            break;
-        }
-    }
+    copy_handler(other_map);
 }
 
 
@@ -62,48 +30,16 @@ myUnorderedMap<Key, T>& myUnorderedMap<Key, T>
 
     if (this == &other_map) return *this;
 
-    hash_set = other_map.hash_set;
-    shared_ptr<ListNode<Key, T>> node
-        = make_shared<ListNode<Key, T>>(other_map.begin);
-    for (shared_ptr<ListNode<Key, T>> pListNode : hash_set)
-    {
-        if (pListNode == nullptr) continue;
-        pListNode = node;
-        while (node->next != nullptr
-            && node->hash_val == pListNode->hash_val)
-        {
-            shared_ptr<ListNode<Key, T>> tmp = node;
-            node = make_shared<ListNode<Key, T>>(node->next);
-            tmp->next = node;
-        }
-    }
-    
-    int left = 0;
-    while (size--)
-    {
-        if (hash_set[left] != nullptr)
-        {
-            begin = hash_set[left++];
-            break;
-        }
-    }
-
-    int right = hash_set.size() - 1;
-    while (size--)
-    {
-        if (hash_set[right] != nullptr)
-        {
-            cbegin = hash_set[right--];
-            break;
-        }
-    }
+    copy_handler(other_map);
 
     return *this;
 }
 
 
 template<class Key, class T>
-myUnorderedMap<Key, T>::myUnorderedMap(myUnorderedMap&& other_map) noexcept
+myUnorderedMap<Key, T>
+    ::myUnorderedMap<Key, T>(myUnorderedMap&& other_map) noexcept
+    : size(701), begin(nullptr), cbegin(nullptr), max_hash_value(0)
 {
     cout << "Move operator()!" << "\n";
     if (this == &other_map) return;
@@ -221,6 +157,56 @@ bool myUnorderedMap<Key, T>::isEmpty()
     return isEmpty;
 }
 
+
+template<class Key, class T>
+void myUnorderedMap<Key, T>::hand(vector<shared_ptr<ListNode<Key, T>>>& vec)
+{
+    for (auto ptr : vec)
+    {
+        if (ptr == nullptr) cout << "NULL!";
+        else cout << ptr->hash_val;
+    }
+    cout << endl;
+}
+
+
+template<class Key, class T>
+void myUnorderedMap<Key, T>::copy_handler(const myUnorderedMap& other_map)
+{
+    hash_set = other_map.hash_set;
+    shared_ptr<ListNode<Key, T>> node
+        = make_shared<ListNode<Key, T>>(other_map.begin);
+    for (shared_ptr<ListNode<Key, T>> pListNode : hash_set)
+    {
+        if (pListNode == nullptr) continue;
+        pListNode = node;
+        while (node->next != nullptr
+            && node->hash_val == pListNode->hash_val)
+        {
+            shared_ptr<ListNode<Key, T>> tmp = node;
+            node = make_shared<ListNode<Key, T>>(node->next);
+            tmp->next = node;
+        }
+    }
+
+    for (int i = 0; i < size; i++)
+    {
+        if (hash_set[i] != nullptr)
+        {
+            begin = hash_set[i];
+            break;
+        }
+    }
+
+    for (int i = size - 1; i >= 0; i--)
+    {
+        if (hash_set[i] != nullptr)
+        {
+            cbegin = hash_set[i];
+            break;
+        }
+    }
+}
 
 template class myUnorderedMap<int, int>;
 template class myUnorderedMap<int, double>;

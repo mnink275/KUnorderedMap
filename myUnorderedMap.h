@@ -36,13 +36,15 @@ public:
     myUnorderedMap& operator=(const myUnorderedMap& other_map);
     myUnorderedMap(myUnorderedMap&& other_map) noexcept;
     myUnorderedMap& operator=(myUnorderedMap&& other_map) noexcept;
-    ~myUnorderedMap();
+    ~myUnorderedMap() = default;
 
     T& operator[](const Key& key);
     void print();
     bool isEmpty();
 private:
     int hash_func(const Key& key);
+    void copy_handler(const myUnorderedMap& other_map);
+    void hand(vector<shared_ptr<ListNode<Key, T>>>& vec);
 
     vector<shared_ptr<ListNode<Key, T>>> hash_set;
     size_t size;
