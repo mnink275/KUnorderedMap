@@ -1,8 +1,9 @@
 #include "myUnorderedMap.h"
 
 template<class Key, class T>
-myUnorderedMap<Key, T>::myUnorderedMap() : size(701), begin(nullptr),
-    cbegin(nullptr), max_hash_value(0)
+myUnorderedMap<Key, T>::myUnorderedMap()
+    : size(701), begin(nullptr), rbegin(nullptr), end(nullptr),
+      rend(nullptr), max_hash_value(0)
 {
     cout << "Constructor!" << "\n";
     hash_set.resize(size, nullptr);
@@ -12,7 +13,8 @@ myUnorderedMap<Key, T>::myUnorderedMap() : size(701), begin(nullptr),
 template<class Key, class T>
 myUnorderedMap<Key, T>
     ::myUnorderedMap<Key, T>(const myUnorderedMap& other_map)
-    : size(701), begin(nullptr), cbegin(nullptr), max_hash_value(0)
+    : size(701), begin(nullptr), rbegin(nullptr), end(nullptr),
+    rend(nullptr), max_hash_value(0)
 {
     cout << "Copy operator()!" << endl;
     if (this == &other_map) return;
@@ -39,17 +41,18 @@ myUnorderedMap<Key, T>& myUnorderedMap<Key, T>
 template<class Key, class T>
 myUnorderedMap<Key, T>
     ::myUnorderedMap<Key, T>(myUnorderedMap&& other_map) noexcept
-    : size(701), begin(nullptr), cbegin(nullptr), max_hash_value(0)
+    : size(701), begin(nullptr), rbegin(nullptr), end(nullptr),
+    rend(nullptr), max_hash_value(0)
 {
     cout << "Move operator()!" << "\n";
     if (this == &other_map) return;
 
     hash_set = move(other_map.hash_set);
     begin = other_map.begin;
-    cbegin = other_map.cbegin;
+    rbegin = other_map.rbegin;
 
     other_map.begin = nullptr;
-    other_map.cbegin = nullptr;
+    other_map.rbegin = nullptr;
 }
 
 
@@ -57,14 +60,15 @@ template<class Key, class T>
 myUnorderedMap<Key, T>& myUnorderedMap<Key, T>
     ::operator=(myUnorderedMap&& other_map) noexcept
 {
+    cout << "Move operator=!" << "\n";
     if (this == &other_map) return *this;
 
     hash_set = move(other_map.hash_set);
     begin = other_map.begin;
-    cbegin = other_map.cbegin;
+    rbegin = other_map.rbegin;
 
     other_map.begin = nullptr;
-    other_map.cbegin = nullptr;
+    other_map.rbegin = nullptr;
 
     return *this;
 }
@@ -85,12 +89,12 @@ T& myUnorderedMap<Key, T>::operator[](const Key& key)
         if (isEmpty())
         {
             begin = node;
-            cbegin = node;
+            rbegin = node;
         }
         else
         {
-            cbegin->next = node;
-            cbegin = node;
+            rbegin->next = node;
+            rbegin = node;
         }
         hash_set[hash_val] = node;
         
@@ -112,7 +116,7 @@ T& myUnorderedMap<Key, T>::operator[](const Key& key)
         if (node->hash_val > max_hash_value)
         {
             max_hash_value = hash_val;
-            cbegin = node;
+            rbegin = node;
         }
 
         return node->value_type.second;
@@ -159,18 +163,6 @@ bool myUnorderedMap<Key, T>::isEmpty()
 
 
 template<class Key, class T>
-void myUnorderedMap<Key, T>::hand(vector<shared_ptr<ListNode<Key, T>>>& vec)
-{
-    for (auto ptr : vec)
-    {
-        if (ptr == nullptr) cout << "NULL!";
-        else cout << ptr->hash_val;
-    }
-    cout << endl;
-}
-
-
-template<class Key, class T>
 void myUnorderedMap<Key, T>::copy_handler(const myUnorderedMap& other_map)
 {
     hash_set = other_map.hash_set;
@@ -202,11 +194,52 @@ void myUnorderedMap<Key, T>::copy_handler(const myUnorderedMap& other_map)
     {
         if (hash_set[i] != nullptr)
         {
-            cbegin = hash_set[i];
+            rbegin = hash_set[i];
             break;
         }
     }
 }
+
+
+template<class Key, class T>
+shared_ptr<ListNode<Key, T>> myUnorderedMap<Key, T>
+    ::find_by_hash(const Key& key)
+{
+    // if hash_func - random, this 'find' won't work!
+    // TODO:
+    // how to prevent implicit convertion, if I write
+    // find_by_hash(int_value) ?
+    int hash_val = hash_func(key);
+    auto ptr = hash_set[hash_val];
+    if (ptr == nullptr)
+    {
+        cout << "Element with key " << key
+            << " wasn't found." << "\n";
+        return nullptr;
+    }
+    return ptr;
+}
+
+
+template<class Key, class T>
+shared_ptr<ListNode<Key, T>> myUnorderedMap<Key, T>::find(const Key& key)
+{
+    auto It = begin;
+    Key target = It->value_type.first;
+    while (target != key)
+    {
+        It = It->next;
+        if (It == nullptr)
+        {
+            cout << "Element with key " << key
+                << " wasn't found." << "\n";
+            return nullptr;
+        }
+        target = It->value_type.first;
+    }
+    return It;
+}
+
 
 template class myUnorderedMap<int, int>;
 template class myUnorderedMap<int, double>;

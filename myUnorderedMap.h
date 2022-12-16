@@ -41,14 +41,18 @@ public:
     T& operator[](const Key& key);
     void print();
     bool isEmpty();
+    shared_ptr<ListNode<Key, T>> find_by_hash(const Key&);
+    shared_ptr<ListNode<Key, T>> find(const Key&);
+
 private:
     int hash_func(const Key& key);
     void copy_handler(const myUnorderedMap& other_map);
-    void hand(vector<shared_ptr<ListNode<Key, T>>>& vec);
 
     vector<shared_ptr<ListNode<Key, T>>> hash_set;
-    size_t size;
+    const size_t size;
     shared_ptr<ListNode<Key, T>> begin;
-    shared_ptr<ListNode<Key, T>> cbegin;
+    shared_ptr<ListNode<Key, T>> end;
+    shared_ptr<ListNode<Key, T>> rbegin;
+    shared_ptr<ListNode<Key, T>> rend;
     int max_hash_value;
 };
