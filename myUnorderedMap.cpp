@@ -2,19 +2,19 @@
 
 template<class Key, class T>
 myUnorderedMap<Key, T>::myUnorderedMap()
-    : size(701), begin(nullptr), rbegin(nullptr), end(nullptr),
-      rend(nullptr), max_hash_value(0)
+    : capacity(701), begin(nullptr), rbegin(nullptr), end(nullptr),
+      rend(nullptr), max_hash_value(0), size(0)
 {
     cout << "Constructor!" << "\n";
-    hash_set.resize(size, nullptr);
+    hash_set.resize(capacity, nullptr);
 }
 
 
 template<class Key, class T>
 myUnorderedMap<Key, T>
     ::myUnorderedMap<Key, T>(const myUnorderedMap& other_map)
-    : size(701), begin(nullptr), rbegin(nullptr), end(nullptr),
-    rend(nullptr), max_hash_value(0)
+    : capacity(701), begin(nullptr), rbegin(nullptr), end(nullptr),
+    rend(nullptr), max_hash_value(0), size(0)
 {
     cout << "Copy operator()!" << endl;
     if (this == &other_map) return;
@@ -41,13 +41,14 @@ myUnorderedMap<Key, T>& myUnorderedMap<Key, T>
 template<class Key, class T>
 myUnorderedMap<Key, T>
     ::myUnorderedMap<Key, T>(myUnorderedMap&& other_map) noexcept
-    : size(701), begin(nullptr), rbegin(nullptr), end(nullptr),
-    rend(nullptr), max_hash_value(0)
+    : capacity(701), begin(nullptr), rbegin(nullptr), end(nullptr),
+    rend(nullptr), max_hash_value(0), size(0)
 {
     cout << "Move operator()!" << "\n";
     if (this == &other_map) return;
 
     hash_set = move(other_map.hash_set);
+    size = other_map.size;
     begin = other_map.begin;
     rbegin = other_map.rbegin;
 
@@ -64,6 +65,7 @@ myUnorderedMap<Key, T>& myUnorderedMap<Key, T>
     if (this == &other_map) return *this;
 
     hash_set = move(other_map.hash_set);
+    size = other_map.size;
     begin = other_map.begin;
     rbegin = other_map.rbegin;
 
@@ -78,6 +80,7 @@ template<class Key, class T>
 T& myUnorderedMap<Key, T>::operator[](const Key& key)
 {
     size_t hash_val = hash_func(key);
+    size++;
 
     if (hash_set[hash_val] == nullptr)
     {
@@ -127,7 +130,7 @@ T& myUnorderedMap<Key, T>::operator[](const Key& key)
 template<class Key, class T>
 int myUnorderedMap<Key, T>::hash_func(const Key& key)
 {
-    int hash_val = static_cast<int>(key) % size;
+    int hash_val = static_cast<int>(key) % capacity;
     return hash_val;
 }
 
@@ -166,6 +169,7 @@ template<class Key, class T>
 void myUnorderedMap<Key, T>::copy_handler(const myUnorderedMap& other_map)
 {
     hash_set = other_map.hash_set;
+    size = other_map.size;
     shared_ptr<ListNode<Key, T>> node
         = make_shared<ListNode<Key, T>>(other_map.begin);
     for (shared_ptr<ListNode<Key, T>> pListNode : hash_set)
@@ -181,7 +185,7 @@ void myUnorderedMap<Key, T>::copy_handler(const myUnorderedMap& other_map)
         }
     }
 
-    for (int i = 0; i < size; i++)
+    for (int i = 0; i < capacity; i++)
     {
         if (hash_set[i] != nullptr)
         {
@@ -190,7 +194,7 @@ void myUnorderedMap<Key, T>::copy_handler(const myUnorderedMap& other_map)
         }
     }
 
-    for (int i = size - 1; i >= 0; i--)
+    for (int i = capacity - 1; i >= 0; i--)
     {
         if (hash_set[i] != nullptr)
         {
@@ -238,6 +242,13 @@ shared_ptr<ListNode<Key, T>> myUnorderedMap<Key, T>::find(const Key& key)
         target = It->value_type.first;
     }
     return It;
+}
+
+
+template<class Key, class T>
+size_t myUnorderedMap<Key, T>::mapSize()
+{
+    return size;
 }
 
 

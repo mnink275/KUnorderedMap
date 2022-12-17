@@ -40,6 +40,7 @@ public:
 
     T& operator[](const Key& key);
     void print();
+    size_t mapSize();
     bool isEmpty();
     shared_ptr<ListNode<Key, T>> find_by_hash(const Key&);
     shared_ptr<ListNode<Key, T>> find(const Key&);
@@ -49,7 +50,8 @@ private:
     void copy_handler(const myUnorderedMap& other_map);
 
     vector<shared_ptr<ListNode<Key, T>>> hash_set;
-    const size_t size;
+    size_t capacity;
+    size_t size;
     shared_ptr<ListNode<Key, T>> begin;
     shared_ptr<ListNode<Key, T>> end;
     shared_ptr<ListNode<Key, T>> rbegin;

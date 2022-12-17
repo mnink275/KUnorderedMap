@@ -17,7 +17,7 @@ int main()
     //{
     //    map1[i] = i;
     //}
-    for (double i = 1.1; i < 5.5; i++)
+    for (double i = 1.1; i < 50.5; i++)
     {
         map1[i] = i + 100;
     }
@@ -33,7 +33,7 @@ int main()
     auto ptr = map1.find(2.1);
     ptr->value_type.second = 1.1;
     map1.print();
-
+    cout << map1.mapSize();
     /*map_reciver.print();
     map.print();*/
 
