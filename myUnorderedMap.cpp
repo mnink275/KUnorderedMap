@@ -12,7 +12,7 @@ myUnorderedMap<Key, T>::myUnorderedMap()
 
 template<class Key, class T>
 myUnorderedMap<Key, T>
-    ::myUnorderedMap<Key, T>(const myUnorderedMap& other_map)
+    ::myUnorderedMap(const myUnorderedMap& other_map)
     : capacity(701), begin(nullptr), rbegin(nullptr), end(nullptr),
     rend(nullptr), max_hash_value(0), size(0)
 {
@@ -40,7 +40,7 @@ myUnorderedMap<Key, T>& myUnorderedMap<Key, T>
 
 template<class Key, class T>
 myUnorderedMap<Key, T>
-    ::myUnorderedMap<Key, T>(myUnorderedMap&& other_map) noexcept
+    ::myUnorderedMap(myUnorderedMap&& other_map) noexcept
     : capacity(701), begin(nullptr), rbegin(nullptr), end(nullptr),
     rend(nullptr), max_hash_value(0), size(0)
 {
