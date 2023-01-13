@@ -11,19 +11,15 @@ struct ListNode {
     pair<const Key, T> value_type;
     size_t hash_val;
     shared_ptr<ListNode<Key, T>> next;
-    ListNode() : hash_val(0), next(nullptr), value_type(0, 0) {}
+    /*ListNode() : hash_val(0), next(nullptr), value_type(0, 0) {}*/
     ListNode(const Key& _key, size_t _hash_val)
-        : hash_val(_hash_val), next(nullptr), value_type(_key, 0) {}
+        : hash_val(_hash_val), next(nullptr), value_type(_key, {}) {}
     ListNode(const Key& _key, size_t _hash_val, ListNode* _next)
-        : hash_val(_hash_val), next(nullptr), value_type(_key, 0),
-        next(_next) {}
-    explicit ListNode(const shared_ptr<ListNode<Key, T>> _node)
-        : value_type(_node->value_type.first, _node->value_type.second),
-        hash_val(_node->hash_val),
-        next(_node->next)
-    {
-
-    }
+        : hash_val(_hash_val), value_type(_key, {}), next(_next) {}
+    //explicit ListNode(const shared_ptr<ListNode<Key, T>> _node)
+    //    : value_type(_node->value_type.first, _node->value_type.second),
+    //    hash_val(_node->hash_val),
+    //    next(_node->next) {}
 };
 
 
@@ -215,9 +211,10 @@ public:
     }
 
 private:
-    int hash_func(const Key& key)
+    size_t hash_func(const Key& key)
     {
-        int hash_val = static_cast<int>(key) % capacity;
+        /*size_t hash_val = static_cast<int>(key) % capacity;*/
+        size_t hash_val = std::hash<Key>{}(key) % capacity;
         return hash_val;
     }
 
@@ -266,5 +263,5 @@ private:
     shared_ptr<ListNode<Key, T>> end;
     shared_ptr<ListNode<Key, T>> rbegin;
     shared_ptr<ListNode<Key, T>> rend;
-    int max_hash_value;
+    size_t max_hash_value;
 };
