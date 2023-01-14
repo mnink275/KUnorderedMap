@@ -94,7 +94,7 @@ public:
     }
 
 
-
+    // assign operator []
     T& operator[](const Key& key)
     {
         size_t hash_val = hash_func(key);
@@ -156,7 +156,7 @@ public:
         cout << endl;
     }
 
-    size_t mapSize()
+    size_t Size()
     {
         return size;
     }
