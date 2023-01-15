@@ -10,10 +10,11 @@ template<class Key, class T>
 struct ListNode {
     pair<const Key, T> value_type;
     size_t hash_val;
+    shared_ptr<ListNode<Key, T>> prev;
     shared_ptr<ListNode<Key, T>> next;
     /*ListNode() : hash_val(0), next(nullptr), value_type(0, 0) {}*/
     ListNode(const Key& _key, size_t _hash_val)
-        : hash_val(_hash_val), next(nullptr), value_type(_key, {}) {}
+        : hash_val(_hash_val), prev(nullptr), next(nullptr), value_type(_key, {}) {}
     ListNode(const Key& _key, size_t _hash_val, ListNode* _next)
         : hash_val(_hash_val), value_type(_key, {}), next(_next) {}
     //explicit ListNode(const shared_ptr<ListNode<Key, T>> _node)
@@ -36,7 +37,10 @@ public:
         hash_set.resize(capacity, nullptr);
     }
 
-    ~myUnorderedMap() = default;
+    ~myUnorderedMap()
+    {
+        cout << "Destructor!" << "\n";
+    }
 
     // copy constructors
     myUnorderedMap(const myUnorderedMap& other_map)
@@ -102,42 +106,52 @@ public:
 
         if (hash_set[hash_val] == nullptr)
         {
-            // if node with corresponding hash_val doesn't exists,
+            // if node with corresponding hash_val doesn't exist,
             // create new node, connect it to the main linked list and
             // put it's pointer to the hash_set.
-            shared_ptr<ListNode<Key, T>> node
-                = make_shared<ListNode<Key, T>>(key, hash_val);
+            auto node = make_shared<ListNode<Key, T>>(key, hash_val);
             if (isEmpty())
             {
+                hash_set[hash_val] = node;
                 begin = node;
                 rbegin = node;
             }
             else
             {
+                hash_set[hash_val] = node;
                 rbegin->next = node;
+                node->prev = rbegin;
                 rbegin = node;
             }
-            hash_set[hash_val] = node;
-
+            
             return node->value_type.second;
         }
         else
         {
             // if node with corresponding hash_val exists,
-            // create new node and connect it to the main linked list.
+            // just change value of ListNode with corresponding key.
             shared_ptr<ListNode<Key, T>> it = hash_set[hash_val];
-            while (it->next != nullptr)
+            shared_ptr<ListNode<Key, T>> prev_it;
+            while (it != nullptr && it->hash_val == hash_val)
             {
+                if (it->value_type.first == key)
+                {
+                    return it->value_type.second;
+                }
+                prev_it = it;
                 it = it->next;
             }
-            shared_ptr<ListNode<Key, T>> node
-                = make_shared<ListNode<Key, T>>(key, hash_val);
-            it->next = node;
 
-            if (node->hash_val > max_hash_value)
+            // if node with corresponding key doesn't exist,
+            // create new node and add it to the ending of 
+            // the corresponding bucket.
+            auto node = make_shared<ListNode<Key, T>>(key, hash_val);
+            prev_it->next = node;
+            node->prev = prev_it;
+            if (it != nullptr)
             {
-                max_hash_value = hash_val;
-                rbegin = node;
+                node->next = it;
+                it->prev = node;
             }
 
             return node->value_type.second;
@@ -169,45 +183,61 @@ public:
             if (pListNode != nullptr)
             {
                 isEmpty = 0;
-                break;
+                return isEmpty;
+                // maybe 'return isEmpty' better?
             }
         }
         return isEmpty;
     }
 
-    shared_ptr<ListNode<Key, T>> find_by_hash(const Key& key)
+    pair<const Key, T>* brute_force_find(const Key& key)
     {
-        // if hash_func - random, this 'find' won't work!
-        // TODO:
-        // how to prevent implicit convertion, if I write
-        // find_by_hash(int_value) ?
-        int hash_val = hash_func(key);
-        auto ptr = hash_set[hash_val];
-        if (ptr == nullptr)
-        {
-            cout << "Element with key " << key
-                << " wasn't found." << "\n";
-            return nullptr;
-        }
-        return ptr;
-    }
-
-    shared_ptr<ListNode<Key, T>> find(const Key& key)
-    {
-        auto It = begin;
-        Key target = It->value_type.first;
+        auto it = begin;
+        Key target = it->value_type.first;
         while (target != key)
         {
-            It = It->next;
-            if (It == nullptr)
+            it = it->next;
+            if (it == nullptr)
             {
                 cout << "Element with key " << key
                     << " wasn't found." << "\n";
                 return nullptr;
             }
-            target = It->value_type.first;
+            target = it->value_type.first;
         }
-        return It;
+        return &(it->value_type);
+    }
+
+    pair<const Key, T>* find(const Key& key)
+    {
+        // if hash_func - random, this 'find' won't work!
+        // TODO:
+        // how to prevent implicit convertion, if I write
+        // find_by_hash(int_value) ?
+        size_t hash_val = hash_func(key);
+        auto it = hash_set[hash_val];
+        if (it == nullptr)
+        {
+            cout << "Element with the key " << key
+                << " wasn't found." << "\n";
+            return nullptr;
+        }
+        else
+        {
+            Key target = it->value_type.first;
+            while (key != target)
+            {
+                it = it->next;
+                if (it == nullptr)
+                {
+                    cout << "Element with the key " << key
+                        << " wasn't found." << "\n";
+                    return nullptr;
+                }
+                target = it->value_type.first;
+            }
+            return &(it->value_type);
+        }
     }
 
 private:
@@ -222,8 +252,8 @@ private:
     {
         hash_set = other_map.hash_set;
         size = other_map.size;
-        shared_ptr<ListNode<Key, T>> node
-            = make_shared<ListNode<Key, T>>(other_map.begin);
+        auto node = make_shared<ListNode<Key, T>>(other_map.begin);
+        // Complexity: O(n)
         for (shared_ptr<ListNode<Key, T>> pListNode : hash_set)
         {
             if (pListNode == nullptr) continue;
@@ -234,6 +264,7 @@ private:
                 shared_ptr<ListNode<Key, T>> tmp = node;
                 node = make_shared<ListNode<Key, T>>(node->next);
                 tmp->next = node;
+                node->prev = tmp;
             }
         }
 
@@ -256,6 +287,7 @@ private:
         }
     }
 
+private:
     vector<shared_ptr<ListNode<Key, T>>> hash_set;
     size_t capacity;
     size_t size;
