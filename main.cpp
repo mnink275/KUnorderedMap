@@ -40,6 +40,19 @@ int main()
     /*doubleMap.print();
     stringMap.print();*/
 
+    // copy operation
+    intMapOther = intMap;
+    assert(!intMap.isEmpty());
+    assert(!intMapOther.isEmpty());
+
+    // move operation
+    intMapOther = move(intMap);
+    assert(intMap.isEmpty());
+    assert(!intMapOther.isEmpty());
+
+    // other functions
+    cout << doubleMap.max_bucket_count() << "\n";
+    cout << doubleMap.bucket_count() << "\n";
 
     // performance test
     /*time_point<high_resolution_clock> start_point, end_point;
