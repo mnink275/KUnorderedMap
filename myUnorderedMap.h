@@ -17,10 +17,9 @@ struct ListNode {
         : hash_val(_hash_val), prev(nullptr), next(nullptr), value_type(_key, {}) {}
     ListNode(const Key& _key, size_t _hash_val, ListNode* _next)
         : hash_val(_hash_val), value_type(_key, {}), next(_next) {}
-    //explicit ListNode(const shared_ptr<ListNode<Key, T>> _node)
-    //    : value_type(_node->value_type.first, _node->value_type.second),
-    //    hash_val(_node->hash_val),
-    //    next(_node->next) {}
+    explicit ListNode(ListNode<Key, T>& _node)
+        : value_type(_node.value_type.first, _node.value_type.second),
+        hash_val(_node.hash_val), prev(_node.prev), next(_node.next) {};
 };
 
 
@@ -31,23 +30,23 @@ public:
     // constructor and destructor
     myUnorderedMap()
         : capacity(701), begin(nullptr), rbegin(nullptr), end(nullptr),
-        rend(nullptr), max_hash_value(0), size(0)
+        rend(nullptr), max_hash_value(0), size(0), bucket_count_val(0)
     {
-        cout << "Constructor!" << "\n";
+        //cout << "Constructor!" << "\n";
         hash_set.resize(capacity, nullptr);
     }
 
     ~myUnorderedMap()
     {
-        cout << "Destructor!" << "\n";
+        //cout << "Destructor!" << "\n";
     }
 
     // copy constructors
     myUnorderedMap(const myUnorderedMap& other_map)
         : capacity(701), begin(nullptr), rbegin(nullptr), end(nullptr),
-        rend(nullptr), max_hash_value(0), size(0)
+        rend(nullptr), max_hash_value(0), size(0), bucket_count_val(0)
     {
-        cout << "Copy operator()!" << endl;
+        cout << "Copy operator()!" << "\n";
         if (this == &other_map) return;
 
         copy_handler(other_map);
@@ -55,7 +54,7 @@ public:
 
     myUnorderedMap<Key, T>& operator=(const myUnorderedMap& other_map)
     {
-        cout << "Copy operator=!" << endl;
+        cout << "Copy operator=!" << "\n";
 
         if (this == &other_map) return *this;
 
@@ -67,13 +66,14 @@ public:
     // move constructors
     myUnorderedMap(myUnorderedMap&& other_map) noexcept
         : capacity(701), begin(nullptr), rbegin(nullptr), end(nullptr),
-        rend(nullptr), max_hash_value(0), size(0)
+        rend(nullptr), max_hash_value(0), size(0), bucket_count_val(0)
     {
         cout << "Move operator()!" << "\n";
         if (this == &other_map) return;
 
         hash_set = move(other_map.hash_set);
         size = other_map.size;
+        bucket_count_val = other_map.bucket_count_val;
         begin = other_map.begin;
         rbegin = other_map.rbegin;
 
@@ -88,6 +88,7 @@ public:
 
         hash_set = move(other_map.hash_set);
         size = other_map.size;
+        bucket_count_val = other_map.bucket_count_val;
         begin = other_map.begin;
         rbegin = other_map.rbegin;
 
@@ -110,6 +111,7 @@ public:
             // create new node, connect it to the main linked list and
             // put it's pointer to the hash_set.
             auto node = make_shared<ListNode<Key, T>>(key, hash_val);
+            bucket_count_val++;
             if (isEmpty())
             {
                 hash_set[hash_val] = node;
@@ -240,6 +242,16 @@ public:
         }
     }
 
+    size_t max_bucket_count()
+    {
+        return capacity;
+    }
+
+    size_t bucket_count()
+    {
+        return bucket_count_val;
+    }
+
 private:
     size_t hash_func(const Key& key)
     {
@@ -252,39 +264,27 @@ private:
     {
         hash_set = other_map.hash_set;
         size = other_map.size;
-        auto node = make_shared<ListNode<Key, T>>(other_map.begin);
+        bucket_count_val = other_map.bucket_count_val;
+        auto new_node = make_shared<ListNode<Key, T>>(*other_map.begin);
+        begin = new_node;
+        hash_set[new_node->hash_val] = new_node;
+
+        auto prev_it = new_node;
+        auto it = new_node->next;
         // Complexity: O(n)
-        for (shared_ptr<ListNode<Key, T>> pListNode : hash_set)
+        while (it != nullptr)
         {
-            if (pListNode == nullptr) continue;
-            pListNode = node;
-            while (node->next != nullptr
-                && node->hash_val == pListNode->hash_val)
+            new_node = make_shared<ListNode<Key, T>>(*it);
+            prev_it->next = new_node;
+            new_node->prev = prev_it;
+            if (new_node->hash_val != prev_it->hash_val)
             {
-                shared_ptr<ListNode<Key, T>> tmp = node;
-                node = make_shared<ListNode<Key, T>>(node->next);
-                tmp->next = node;
-                node->prev = tmp;
+                hash_set[new_node->hash_val] = new_node;
             }
+            it = it->next;
+            prev_it = prev_it->next;
         }
-
-        for (int i = 0; i < capacity; i++)
-        {
-            if (hash_set[i] != nullptr)
-            {
-                begin = hash_set[i];
-                break;
-            }
-        }
-
-        for (int i = capacity - 1; i >= 0; i--)
-        {
-            if (hash_set[i] != nullptr)
-            {
-                rbegin = hash_set[i];
-                break;
-            }
-        }
+        rbegin = prev_it;
     }
 
 private:
@@ -295,5 +295,6 @@ private:
     shared_ptr<ListNode<Key, T>> end;
     shared_ptr<ListNode<Key, T>> rbegin;
     shared_ptr<ListNode<Key, T>> rend;
-    size_t max_hash_value;
+    size_t max_hash_value; // Candidate for deleting?
+    size_t bucket_count_val;
 };
