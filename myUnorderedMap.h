@@ -43,6 +43,16 @@ public:
             return &(ptr->data_pair);
         }
 
+        friend bool operator!= (const Iterator& left, const Iterator& right)
+        {
+            return left.ptr != right.ptr;
+        }
+
+        friend bool operator== (const Iterator& left, const Iterator& right)
+        {
+            return left.ptr == right.ptr;
+        }
+
     private:
         pointer ptr;
     };
@@ -50,8 +60,8 @@ public:
 public:
     // constructor and destructor
     myUnorderedMap()
-        : capacity(701), m_begin(nullptr), rbegin(nullptr), m_end(nullptr),
-        rend(nullptr), max_hash_value(0), size(0), bucket_count_val(0)
+        : capacity(701), m_begin(nullptr), m_rbegin(nullptr), m_end(nullptr),
+        m_rend(nullptr), max_hash_value(0), size(0), bucket_count_val(0)
     {
         //cout << "Constructor!" << "\n";
         hash_set.resize(capacity, nullptr);
@@ -64,8 +74,8 @@ public:
 
     // copy constructors
     myUnorderedMap(const myUnorderedMap& other_map)
-        : capacity(701), m_begin(nullptr), rbegin(nullptr), m_end(nullptr),
-        rend(nullptr), max_hash_value(0), size(0), bucket_count_val(0)
+        : capacity(701), m_begin(nullptr), m_rbegin(nullptr), m_end(nullptr),
+        m_rend(nullptr), max_hash_value(0), size(0), bucket_count_val(0)
     {
         cout << "Copy operator()!" << "\n";
         if (this == &other_map) return;
@@ -86,8 +96,8 @@ public:
 
     // move constructors
     myUnorderedMap(myUnorderedMap&& other_map) noexcept
-        : capacity(701), m_begin(nullptr), rbegin(nullptr), m_end(nullptr),
-        rend(nullptr), max_hash_value(0), size(0), bucket_count_val(0)
+        : capacity(701), m_begin(nullptr), m_rbegin(nullptr), m_end(nullptr),
+        m_rend(nullptr), max_hash_value(0), size(0), bucket_count_val(0)
     {
         cout << "Move operator()!" << "\n";
         if (this == &other_map) return;
@@ -96,10 +106,14 @@ public:
         size = other_map.size;
         bucket_count_val = other_map.bucket_count_val;
         m_begin = other_map.m_begin;
-        rbegin = other_map.rbegin;
+        m_end = other_map.m_end;
+        m_rbegin = other_map.m_rbegin;
+        m_rend = other_map.m_rend;
 
         other_map.m_begin = nullptr;
-        other_map.rbegin = nullptr;
+        other_map.m_end = nullptr;
+        other_map.m_rbegin = nullptr;
+        other_map.m_rend = nullptr;
     }
 
     myUnorderedMap<Key, T>& operator=(myUnorderedMap&& other_map) noexcept
@@ -111,14 +125,17 @@ public:
         size = other_map.size;
         bucket_count_val = other_map.bucket_count_val;
         m_begin = other_map.m_begin;
-        rbegin = other_map.rbegin;
+        m_end = other_map.m_end;
+        m_rbegin = other_map.m_rbegin;
+        m_rend = other_map.m_rend;
 
         other_map.m_begin = nullptr;
-        other_map.rbegin = nullptr;
+        other_map.m_end = nullptr;
+        other_map.m_rbegin = nullptr;
+        other_map.m_rend = nullptr;
 
         return *this;
     }
-
 
     // assign operator []
     T& operator[](const Key& key)
@@ -137,14 +154,17 @@ public:
             {
                 hash_set[hash_val] = node;
                 m_begin = node;
-                rbegin = node;
+                m_rbegin = node;
+
+                create_end_fake_node();
             }
             else
             {
                 hash_set[hash_val] = node;
-                rbegin->next = node;
-                node->prev = rbegin;
-                rbegin = node;
+                m_rbegin->next = node;
+                node->prev = m_rbegin;
+                m_rbegin = node;
+                node->next = m_end;
             }
             
             return node->data_pair.second;
@@ -155,7 +175,7 @@ public:
             // just change value of ListNode with corresponding key.
             shared_ptr<ListNode<Key, T>> it = hash_set[hash_val];
             shared_ptr<ListNode<Key, T>> prev_it;
-            while (it != nullptr && it->hash_val == hash_val)
+            while (it != m_end && it->hash_val == hash_val)
             {
                 if (it->data_pair.first == key)
                 {
@@ -171,10 +191,14 @@ public:
             auto node = make_shared<ListNode<Key, T>>(key, hash_val);
             prev_it->next = node;
             node->prev = prev_it;
-            if (it != nullptr)
+            if (it != m_end)
             {
                 node->next = it;
                 it->prev = node;
+            }
+            else
+            {
+                node->next = m_end;
             }
 
             return node->data_pair.second;
@@ -185,7 +209,7 @@ public:
     {
         if (m_begin == nullptr) cout << "Called map is empty!" << endl;
         shared_ptr<ListNode<Key, T>> it = m_begin;
-        while (it != nullptr)
+        while (it != m_end)
         {
             cout << it->data_pair.second << " ";
             it = it->next;
@@ -215,12 +239,13 @@ public:
 
     pair<const Key, T>* brute_force_find(const Key& key)
     {
+        if (m_begin == nullptr) cout << "Find error! Map is empty!" << endl;
         auto it = m_begin;
         Key target = it->data_pair.first;
         while (target != key)
         {
             it = it->next;
-            if (it == nullptr)
+            if (it == m_end)
             {
                 cout << "Element with key " << key
                     << " wasn't found." << "\n";
@@ -237,6 +262,7 @@ public:
         // TODO:
         // how to prevent implicit convertion, if I write
         // find_by_hash(int_value) ?
+        if (m_begin == nullptr) cout << "Find error! Map is empty!" << endl;
         size_t hash_val = hash_func(key);
         auto it = hash_set[hash_val];
         if (it == nullptr)
@@ -251,7 +277,7 @@ public:
             while (key != target)
             {
                 it = it->next;
-                if (it == nullptr)
+                if (it == m_end)
                 {
                     cout << "Element with the key " << key
                         << " wasn't found." << "\n";
@@ -283,6 +309,11 @@ public:
         return Iterator<Key, T>(m_begin.get());
     }
 
+    Iterator<Key, T> end()
+    {
+        return Iterator<Key, T>(m_end.get());
+    }
+
 
 private:
     size_t hash_func(const Key& key)
@@ -304,7 +335,7 @@ private:
         auto prev_it = new_node;
         auto it = new_node->next;
         // Complexity: O(n)
-        while (it != nullptr)
+        while (it != other_map.m_end)
         {
             new_node = make_shared<ListNode<Key, T>>(*it);
             prev_it->next = new_node;
@@ -316,9 +347,23 @@ private:
             it = it->next;
             prev_it = prev_it->next;
         }
-        rbegin = prev_it;
+        m_rbegin = prev_it;
+        create_end_fake_node();
+        m_rbegin->next = m_end;
     }
-  
+    
+    void create_end_fake_node()
+    {
+        // dangerous zone!!!
+        // end() "ListNode" implementation
+        std::allocator<ListNode<Key, T>> allocator{};
+        ListNode<Key, T>* raw_ptr = allocator.allocate(1);
+        auto fake_shared_ptr = static_cast<shared_ptr<ListNode<Key, T>>>(raw_ptr);
+        m_end = fake_shared_ptr;
+        m_rend = fake_shared_ptr;
+        m_rbegin->next = m_end;
+        m_begin->prev = m_rend;
+    }
 private:
     // bidirectional list
     template<class Key, class T>
@@ -341,10 +386,12 @@ private:
     vector<shared_ptr<ListNode<Key, T>>> hash_set;
     size_t capacity;
     size_t size;
+    // Unjustified usage of shared_ptr? It seems to me,
+    // that raw pointers are better (lower memory costs and maybe performance).
     shared_ptr<ListNode<Key, T>> m_begin;
     shared_ptr<ListNode<Key, T>> m_end;
-    shared_ptr<ListNode<Key, T>> rbegin;
-    shared_ptr<ListNode<Key, T>> rend;
+    shared_ptr<ListNode<Key, T>> m_rbegin;
+    shared_ptr<ListNode<Key, T>> m_rend;
     size_t max_hash_value; // Candidate for deleting?
     size_t bucket_count_val;
 };
