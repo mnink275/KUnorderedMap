@@ -11,7 +11,7 @@ int main()
     myUnorderedMap<int, int> intMap;
     myUnorderedMap<double, double> doubleMap;
     myUnorderedMap<string, string> stringMap;
-    
+
     // operator[]
     for (int i = 0; i < 700; i++)
     {
@@ -56,12 +56,17 @@ int main()
     cout << doubleMap.load_factor() << "\n";
 
     myUnorderedMap<double, double>::Iterator<double, double> it = doubleMap.begin();
-
     for (size_t i = 0; i < 3; i++)
     {
         ++it;
     }
-    cout << it->first;
+    cout << it->first << "\n";
+
+    for (auto& pr : doubleMap)
+    {
+        cout << pr.second << " ";
+    }
+    cout << "\n";
 
     /*for (auto pr : doubleMap)
     {
