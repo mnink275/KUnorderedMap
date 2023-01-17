@@ -6,13 +6,14 @@
 
 using namespace std;
 
-template<class Key, class T>
+template<class Key, class T, class Hash = std::hash<Key>>
 class myUnorderedMap
 {
 public:
     template<class Key, class T>
     class ListNode;
 
+    // container's iterator
     template<class Key, class T>
     class Iterator
     {
@@ -49,7 +50,7 @@ public:
 public:
     // constructor and destructor
     myUnorderedMap()
-        : capacity(701), m_begin(nullptr), rbegin(nullptr), end(nullptr),
+        : capacity(701), m_begin(nullptr), rbegin(nullptr), m_end(nullptr),
         rend(nullptr), max_hash_value(0), size(0), bucket_count_val(0)
     {
         //cout << "Constructor!" << "\n";
@@ -63,7 +64,7 @@ public:
 
     // copy constructors
     myUnorderedMap(const myUnorderedMap& other_map)
-        : capacity(701), m_begin(nullptr), rbegin(nullptr), end(nullptr),
+        : capacity(701), m_begin(nullptr), rbegin(nullptr), m_end(nullptr),
         rend(nullptr), max_hash_value(0), size(0), bucket_count_val(0)
     {
         cout << "Copy operator()!" << "\n";
@@ -85,7 +86,7 @@ public:
 
     // move constructors
     myUnorderedMap(myUnorderedMap&& other_map) noexcept
-        : capacity(701), m_begin(nullptr), rbegin(nullptr), end(nullptr),
+        : capacity(701), m_begin(nullptr), rbegin(nullptr), m_end(nullptr),
         rend(nullptr), max_hash_value(0), size(0), bucket_count_val(0)
     {
         cout << "Move operator()!" << "\n";
@@ -287,7 +288,7 @@ private:
     size_t hash_func(const Key& key)
     {
         /*size_t hash_val = static_cast<int>(key) % capacity;*/
-        size_t hash_val = std::hash<Key>{}(key) % capacity;
+        size_t hash_val = Hash{}(key) % capacity;
         return hash_val;
     }
 
@@ -319,6 +320,7 @@ private:
     }
   
 private:
+    // bidirectional list
     template<class Key, class T>
     struct ListNode {
         pair<const Key, T> data_pair;
@@ -340,7 +342,7 @@ private:
     size_t capacity;
     size_t size;
     shared_ptr<ListNode<Key, T>> m_begin;
-    shared_ptr<ListNode<Key, T>> end;
+    shared_ptr<ListNode<Key, T>> m_end;
     shared_ptr<ListNode<Key, T>> rbegin;
     shared_ptr<ListNode<Key, T>> rend;
     size_t max_hash_value; // Candidate for deleting?
