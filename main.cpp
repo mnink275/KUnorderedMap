@@ -53,7 +53,20 @@ int main()
     // other functions
     cout << doubleMap.max_bucket_count() << "\n";
     cout << doubleMap.bucket_count() << "\n";
+    cout << doubleMap.load_factor() << "\n";
 
+    myUnorderedMap<double, double>::Iterator<double, double> it = doubleMap.begin();
+
+    for (size_t i = 0; i < 3; i++)
+    {
+        ++it;
+    }
+    cout << it->first;
+
+    /*for (auto pr : doubleMap)
+    {
+
+    }*/
     // performance test
     /*time_point<high_resolution_clock> start_point, end_point;
     start_point = high_resolution_clock::now();
