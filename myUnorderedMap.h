@@ -18,7 +18,7 @@ public:
     class Iterator
     {
         // iterator tags
-        using iterator_category = std::forward_iterator_tag;
+        using iterator_category = std::bidirectional_iterator_tag;
         using difference_type = std::ptrdiff_t;
         using value_type = ListNode<Key, T>;
         using pointer = ListNode<Key, T>*;
@@ -35,6 +35,12 @@ public:
         Iterator& operator++()
         {
             ptr = (ptr->next).get();
+            return *this;
+        }
+
+        Iterator& operator--()
+        {
+            ptr = (ptr->prev).get();
             return *this;
         }
 
@@ -60,8 +66,8 @@ public:
 public:
     // constructor and destructor
     myUnorderedMap()
-        : capacity(701), m_begin(nullptr), m_rbegin(nullptr), m_end(nullptr),
-        m_rend(nullptr), max_hash_value(0), size(0), bucket_count_val(0)
+        : capacity(512), m_begin(nullptr), m_rbegin(nullptr), m_end(nullptr),
+        m_rend(nullptr), max_load_factor(1.0f), size(0), bucket_count_val(0)
     {
         //cout << "Constructor!" << "\n";
         hash_set.resize(capacity, nullptr);
@@ -74,8 +80,8 @@ public:
 
     // copy constructors
     myUnorderedMap(const myUnorderedMap& other_map)
-        : capacity(701), m_begin(nullptr), m_rbegin(nullptr), m_end(nullptr),
-        m_rend(nullptr), max_hash_value(0), size(0), bucket_count_val(0)
+        : capacity(other_map.capacity), m_begin(nullptr), m_rbegin(nullptr), m_end(nullptr),
+        m_rend(nullptr), max_load_factor(1.0f), size(0), bucket_count_val(0)
     {
         cout << "Copy operator()!" << "\n";
         if (this == &other_map) return;
@@ -96,14 +102,15 @@ public:
 
     // move constructors
     myUnorderedMap(myUnorderedMap&& other_map) noexcept
-        : capacity(701), m_begin(nullptr), m_rbegin(nullptr), m_end(nullptr),
-        m_rend(nullptr), max_hash_value(0), size(0), bucket_count_val(0)
+        : capacity(other_map.capacity), m_begin(nullptr), m_rbegin(nullptr), m_end(nullptr),
+        m_rend(nullptr), max_load_factor(0.0f), size(0), bucket_count_val(0)
     {
         cout << "Move operator()!" << "\n";
         if (this == &other_map) return;
 
         hash_set = move(other_map.hash_set);
         size = other_map.size;
+        max_load_factor = other_map.max_load_factor;
         bucket_count_val = other_map.bucket_count_val;
         m_begin = other_map.m_begin;
         m_end = other_map.m_end;
@@ -123,6 +130,8 @@ public:
 
         hash_set = move(other_map.hash_set);
         size = other_map.size;
+        capacity = other_map.capacity;
+        max_load_factor = other_map.max_load_factor;
         bucket_count_val = other_map.bucket_count_val;
         m_begin = other_map.m_begin;
         m_end = other_map.m_end;
@@ -140,6 +149,13 @@ public:
     // assign operator []
     T& operator[](const Key& key)
     {
+        // check if it's time to rehash
+        /*if (size > 0 && load_factor() > max_load_factor)
+        {
+            capacity *= 2;
+            rehash(capacity);
+        }*/
+
         size_t hash_val = hash_func(key);
         size++;
 
@@ -150,7 +166,7 @@ public:
             // put it's pointer to the hash_set.
             auto node = make_shared<ListNode<Key, T>>(key, hash_val);
             bucket_count_val++;
-            if (isEmpty())
+            if (size == 1)
             {
                 hash_set[hash_val] = node;
                 m_begin = node;
@@ -231,7 +247,6 @@ public:
             {
                 isEmpty = 0;
                 return isEmpty;
-                // maybe 'return isEmpty' better?
             }
         }
         return isEmpty;
@@ -304,6 +319,20 @@ public:
         return static_cast<float>(Size()) / bucket_count();
     }
 
+    void rehash(size_t new_capacity)
+    {
+        //hash_set.clear();
+        //hash_set.resize(new_capacity, nullptr);
+        //auto it = m_begin;
+        //while (it != m_end)
+        //{
+        //    operator[it->data_pair.first];
+
+        //    it = it->next;
+        //}
+
+    }
+
     Iterator<Key, T> begin()
     {
         return Iterator<Key, T>(m_begin.get());
@@ -327,6 +356,8 @@ private:
     {
         hash_set = other_map.hash_set;
         size = other_map.size;
+        capacity = other_map.capacity;
+        max_load_factor = other_map.max_load_factor;
         bucket_count_val = other_map.bucket_count_val;
         auto new_node = make_shared<ListNode<Key, T>>(*other_map.m_begin);
         m_begin = new_node;
@@ -392,6 +423,6 @@ private:
     shared_ptr<ListNode<Key, T>> m_end;
     shared_ptr<ListNode<Key, T>> m_rbegin;
     shared_ptr<ListNode<Key, T>> m_rend;
-    size_t max_hash_value; // Candidate for deleting?
+    float max_load_factor;
     size_t bucket_count_val;
 };

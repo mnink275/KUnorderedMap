@@ -15,7 +15,9 @@ int main()
     // operator[]
     for (int i = 0; i < 700; i++)
     {
+        //cout << "DEBIG" + to_string(i) << "\n";
         intMap[i] = i + 100;
+        //cout << intMap.load_factor() << " " << intMap.Size() << " " << intMap.bucket_count() << "\n";
         doubleMap[i + 0.5] = i + 100.5;
         stringMap["key" + to_string(i)] = "value" + to_string(i);
     }
@@ -51,16 +53,17 @@ int main()
     assert(!intMapOther.isEmpty());
 
     // other functions
-    cout << doubleMap.max_bucket_count() << "\n";
-    cout << doubleMap.bucket_count() << "\n";
-    cout << doubleMap.load_factor() << "\n";
+    cout << "max_bucket_count: " << doubleMap.max_bucket_count() << "\n";
+    cout << "bucket_count: " << doubleMap.bucket_count() << "\n";
+    cout << "load_factor: " << doubleMap.load_factor() << "\n";
 
+    // iterator
     myUnorderedMap<double, double>::Iterator<double, double> it = doubleMap.begin();
-    for (size_t i = 0; i < 3; i++)
-    {
-        ++it;
-    }
-    cout << it->first << "\n";
+    for (size_t i = 0; i < 3; i++) ++it;
+    cout << "it_to_begin++ 3 times: " << it->second << "\n";
+
+    for (size_t i = 0; i < 3; i++) --it;
+    cout << "it_to_begin-- 3 times: " << it->second << "\n";
 
     for (auto& pr : doubleMap)
     {
@@ -68,19 +71,22 @@ int main()
     }
     cout << "\n";
 
-    /*for (auto pr : doubleMap)
-    {
-
-    }*/
     // performance test
-    /*time_point<high_resolution_clock> start_point, end_point;
+    myUnorderedMap<int, int> PerformanceTest;
+
+    time_point<high_resolution_clock> start_point, end_point;
     start_point = high_resolution_clock::now();
 
+    for (int i = 0; i < 7000; i++)
+    {
+        PerformanceTest[i] = i + 100;
+    }
 
     end_point = high_resolution_clock::now();
     auto start = time_point_cast<microseconds>(start_point).time_since_epoch().count();
     auto end = time_point_cast<microseconds>(end_point).time_since_epoch().count();
-    cout << "Time taken = " << (end - start) << " microseconds" << endl;*/
+    cout << "Time taken = " << (end - start) << " microseconds\n";
+    cout << PerformanceTest.load_factor() << "\n";
 
     return 0;
 }
