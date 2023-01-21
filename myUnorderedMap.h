@@ -9,12 +9,28 @@ using namespace std;
 template<class Key, class T, class Hash = std::hash<Key>>
 class myUnorderedMap
 {
+private:
+    // bidirectional list
+    template<class, class>
+    struct ListNode {
+        pair<const Key, T> data_pair;
+        size_t hash_val;
+        shared_ptr<ListNode<Key, T>> prev;
+        shared_ptr<ListNode<Key, T>> next;
+        /*ListNode() : hash_val(0), next(nullptr), data_pair(0, 0) {}*/
+        ListNode(const Key& _key, size_t _hash_val)
+            : hash_val(_hash_val), prev(nullptr), next(nullptr), data_pair(_key, {}) {}
+        ListNode(const Key& _key, size_t _hash_val, ListNode* _next)
+            : hash_val(_hash_val), data_pair(_key, {}), next(_next) {}
+        explicit ListNode(ListNode<Key, T>& _node)
+            : data_pair(_node.data_pair.first, _node.data_pair.second),
+            hash_val(_node.hash_val), prev(_node.prev), next(_node.next) {};
+    };
+
 public:
-    template<class Key, class T>
-    class ListNode;
 
     // container's iterator
-    template<class Key, class T>
+    template<class, class>
     class Iterator
     {
         // iterator tags
@@ -395,23 +411,6 @@ private:
         m_rbegin->next = m_end;
         m_begin->prev = m_rend;
     }
-private:
-    // bidirectional list
-    template<class Key, class T>
-    struct ListNode {
-        pair<const Key, T> data_pair;
-        size_t hash_val;
-        shared_ptr<ListNode<Key, T>> prev;
-        shared_ptr<ListNode<Key, T>> next;
-        /*ListNode() : hash_val(0), next(nullptr), data_pair(0, 0) {}*/
-        ListNode(const Key& _key, size_t _hash_val)
-            : hash_val(_hash_val), prev(nullptr), next(nullptr), data_pair(_key, {}) {}
-        ListNode(const Key& _key, size_t _hash_val, ListNode* _next)
-            : hash_val(_hash_val), data_pair(_key, {}), next(_next) {}
-        explicit ListNode(ListNode<Key, T>& _node)
-            : data_pair(_node.data_pair.first, _node.data_pair.second),
-            hash_val(_node.hash_val), prev(_node.prev), next(_node.next) {};
-    };
 
 private:
     vector<shared_ptr<ListNode<Key, T>>> hash_set;
