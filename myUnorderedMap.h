@@ -92,7 +92,7 @@ public:
 
     ~myUnorderedMap()
     {
-        if (size > 1)
+        if (size > 0)
         {
             // Elimination of loop pointers (unbinding of each node)
             nodes_unbinding();
@@ -405,6 +405,8 @@ private:
 
     void nodes_unbinding()
     {
+        // ListNode nodes unbinding, before ~Destructor and MoveCtor
+        // to prevent memory leaks due to nodes looped binding. 
         auto prev_it = m_begin;
         auto it = prev_it->next;
         m_begin = nullptr;
