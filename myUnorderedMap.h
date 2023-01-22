@@ -17,7 +17,9 @@ private:
         size_t hash_val;
         shared_ptr<ListNode<Key, T>> prev;
         shared_ptr<ListNode<Key, T>> next;
-        /*ListNode() : hash_val(0), next(nullptr), data_pair(0, 0) {}*/
+
+        ListNode()
+            : data_pair({}, {}), hash_val(0), prev(nullptr), next(nullptr) {}
         ListNode(const Key& _key, size_t _hash_val)
             : hash_val(_hash_val), prev(nullptr), next(nullptr), data_pair(_key, {}) {}
         ListNode(const Key& _key, size_t _hash_val, ListNode* _next)
@@ -28,7 +30,6 @@ private:
     };
 
 public:
-
     // container's iterator
     template<class, class>
     class Iterator
@@ -91,7 +92,11 @@ public:
 
     ~myUnorderedMap()
     {
-        //cout << "Destructor!" << "\n";
+        if (size > 1)
+        {
+            // Elimination of loop pointers (unbinding of each node)
+            nodes_unbinding();
+        }
     }
 
     // copy constructors
@@ -99,7 +104,7 @@ public:
         : capacity(other_map.capacity), m_begin(nullptr), m_rbegin(nullptr), m_end(nullptr),
         m_rend(nullptr), max_load_factor(1.0f), size(0), bucket_count_val(0)
     {
-        cout << "Copy operator()!" << "\n";
+        cout << "Copy operator()" << "\n";
         if (this == &other_map) return;
 
         copy_handler(other_map);
@@ -107,7 +112,7 @@ public:
 
     myUnorderedMap<Key, T>& operator=(const myUnorderedMap& other_map)
     {
-        cout << "Copy operator=!" << "\n";
+        cout << "Copy operator=" << "\n";
 
         if (this == &other_map) return *this;
 
@@ -121,43 +126,19 @@ public:
         : capacity(other_map.capacity), m_begin(nullptr), m_rbegin(nullptr), m_end(nullptr),
         m_rend(nullptr), max_load_factor(0.0f), size(0), bucket_count_val(0)
     {
-        cout << "Move operator()!" << "\n";
+        cout << "Move operator()" << "\n";
         if (this == &other_map) return;
 
-        hash_set = move(other_map.hash_set);
-        size = other_map.size;
-        max_load_factor = other_map.max_load_factor;
-        bucket_count_val = other_map.bucket_count_val;
-        m_begin = other_map.m_begin;
-        m_end = other_map.m_end;
-        m_rbegin = other_map.m_rbegin;
-        m_rend = other_map.m_rend;
+        move_handler(move(other_map));
 
-        other_map.m_begin = nullptr;
-        other_map.m_end = nullptr;
-        other_map.m_rbegin = nullptr;
-        other_map.m_rend = nullptr;
     }
 
     myUnorderedMap<Key, T>& operator=(myUnorderedMap&& other_map) noexcept
     {
-        cout << "Move operator=!" << "\n";
+        cout << "Move operator=" << "\n";
         if (this == &other_map) return *this;
 
-        hash_set = move(other_map.hash_set);
-        size = other_map.size;
-        capacity = other_map.capacity;
-        max_load_factor = other_map.max_load_factor;
-        bucket_count_val = other_map.bucket_count_val;
-        m_begin = other_map.m_begin;
-        m_end = other_map.m_end;
-        m_rbegin = other_map.m_rbegin;
-        m_rend = other_map.m_rend;
-
-        other_map.m_begin = nullptr;
-        other_map.m_end = nullptr;
-        other_map.m_rbegin = nullptr;
-        other_map.m_rend = nullptr;
+        move_handler(move(other_map));
 
         return *this;
     }
@@ -198,7 +179,7 @@ public:
                 m_rbegin = node;
                 node->next = m_end;
             }
-            
+
             return node->data_pair.second;
         }
         else
@@ -398,18 +379,46 @@ private:
         create_end_fake_node();
         m_rbegin->next = m_end;
     }
-    
+
+    void move_handler(myUnorderedMap&& other_map)
+    {
+        nodes_unbinding();
+        hash_set = move(other_map.hash_set);
+        size = exchange(other_map.size, 0);
+        capacity = exchange(other_map.capacity, 0);
+        max_load_factor = exchange(other_map.max_load_factor, 0);
+        bucket_count_val = exchange(other_map.bucket_count_val, 0);
+        m_begin = exchange(other_map.m_begin, nullptr);
+        m_end = exchange(other_map.m_end, nullptr);
+        m_rbegin = exchange(other_map.m_rbegin, nullptr);
+        m_rend = exchange(other_map.m_rend,nullptr);
+    }
+
     void create_end_fake_node()
     {
-        // dangerous zone!!!
-        // end() "ListNode" implementation
-        std::allocator<ListNode<Key, T>> allocator{};
-        ListNode<Key, T>* raw_ptr = allocator.allocate(1);
-        auto fake_shared_ptr = static_cast<shared_ptr<ListNode<Key, T>>>(raw_ptr);
+        auto fake_shared_ptr = make_shared<ListNode<Key, T>>();
         m_end = fake_shared_ptr;
         m_rend = fake_shared_ptr;
         m_rbegin->next = m_end;
         m_begin->prev = m_rend;
+    }
+
+    void nodes_unbinding()
+    {
+        auto prev_it = m_begin;
+        auto it = prev_it->next;
+        m_begin = nullptr;
+        m_rbegin = nullptr;
+        m_rend = nullptr;
+        while (it != m_end)
+        {
+            prev_it->prev = nullptr;
+            prev_it->next = nullptr;
+            prev_it = it;
+            it = it->next;
+        }
+        prev_it->prev = nullptr;
+        prev_it->next = nullptr;
     }
 
 private:
