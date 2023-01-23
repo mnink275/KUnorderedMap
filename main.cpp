@@ -58,7 +58,7 @@ int main()
     cout << "load_factor: " << doubleMap.load_factor() << "\n";
 
     // iterator
-    myUnorderedMap<double, double>::Iterator<double, double> it = doubleMap.begin();
+    myUnorderedMap<double, double>::Iterator it = doubleMap.begin();
     for (size_t i = 0; i < 3; i++) ++it;
     cout << "it_to_begin++ 3 times: " << it->second << "\n";
 
