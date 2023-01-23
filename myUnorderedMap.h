@@ -11,12 +11,11 @@ class myUnorderedMap
 {
 private:
     // bidirectional list
-    template<class, class>
     struct ListNode {
         pair<const Key, T> data_pair;
         size_t hash_val;
-        shared_ptr<ListNode<Key, T>> prev;
-        shared_ptr<ListNode<Key, T>> next;
+        shared_ptr<ListNode> prev;
+        shared_ptr<ListNode> next;
 
         ListNode()
             : data_pair({}, {}), hash_val(0), prev(nullptr), next(nullptr) {}
@@ -24,61 +23,64 @@ private:
             : hash_val(_hash_val), prev(nullptr), next(nullptr), data_pair(_key, {}) {}
         ListNode(const Key& _key, size_t _hash_val, ListNode* _next)
             : hash_val(_hash_val), data_pair(_key, {}), next(_next) {}
-        explicit ListNode(ListNode<Key, T>& _node)
+        explicit ListNode(ListNode& _node)
             : data_pair(_node.data_pair.first, _node.data_pair.second),
             hash_val(_node.hash_val), prev(_node.prev), next(_node.next) {};
     };
 
 public:
     // container's iterator
-    //template<class, class>
-    class Iterator
+    template<bool IsConst>
+    class CommonIterator
     {
         // iterator tags
         using iterator_category = std::bidirectional_iterator_tag;
         using difference_type = std::ptrdiff_t;
-        using value_type = ListNode<Key, T>;
-        using pointer = ListNode<Key, T>*;
-        using reference = ListNode<Key, T>&;
+        using value_type = ListNode;
+        using pointer = ListNode*;
+        using reference = ListNode&;
 
     public:
-        explicit Iterator(pointer _ptr) : ptr(_ptr) {};
+        explicit CommonIterator(pointer _ptr) : ptr(_ptr) {};
 
-        pair<const Key, T>& operator*()
+        std::conditional_t<IsConst, const pair<const Key, T>&, pair<const Key, T>&> operator*()
         {
             return ptr->data_pair;
         }
 
-        Iterator& operator++()
+        CommonIterator& operator++()
         {
             ptr = (ptr->next).get();
             return *this;
         }
 
-        Iterator& operator--()
+        CommonIterator& operator--()
         {
             ptr = (ptr->prev).get();
             return *this;
         }
 
-        pair<const Key, T>* operator->()
+        std::conditional_t<IsConst, const pair<const Key, T>*, pair<const Key, T>*> operator->()
         {
             return &(ptr->data_pair);
         }
 
-        friend bool operator!= (const Iterator& left, const Iterator& right)
+        friend bool operator!=(const CommonIterator& left, const CommonIterator& right)
         {
             return left.ptr != right.ptr;
         }
 
-        friend bool operator== (const Iterator& left, const Iterator& right)
+        friend bool operator==(const CommonIterator& left, const CommonIterator& right)
         {
             return left.ptr == right.ptr;
         }
 
     private:
-        pointer ptr;
+        std::conditional_t<IsConst, const pointer, pointer> ptr;
     };
+public:
+    using iterator = typename CommonIterator<false>;
+    using const_iterator = typename CommonIterator<true>;
 
 public:
     // constructor and destructor
@@ -117,9 +119,13 @@ public:
 
     void rehash(size_t new_capacity);
 
-    Iterator begin();
+    iterator begin();
 
-    Iterator end();
+    const_iterator begin() const;
+    
+    iterator end();
+
+    const_iterator end() const;
 
 private:
     size_t hash_func(const Key& key);
@@ -133,15 +139,15 @@ private:
     void nodes_unbinding();
 
 private:
-    vector<shared_ptr<ListNode<Key, T>>> hash_set;
+    vector<shared_ptr<ListNode>> hash_set;
     size_t capacity;
     size_t size;
     // Unjustified usage of shared_ptr? It seems to me,
     // that raw pointers are better (lower memory costs and maybe performance).
-    shared_ptr<ListNode<Key, T>> m_begin;
-    shared_ptr<ListNode<Key, T>> m_end;
-    shared_ptr<ListNode<Key, T>> m_rbegin;
-    shared_ptr<ListNode<Key, T>> m_rend;
+    shared_ptr<ListNode> m_begin;
+    shared_ptr<ListNode> m_end;
+    shared_ptr<ListNode> m_rbegin;
+    shared_ptr<ListNode> m_rend;
     float max_load_factor;
     size_t bucket_count_val;
 };
@@ -150,188 +156,221 @@ private:
 template<class Key, class T, class Hash>
 myUnorderedMap<Key, T, Hash>::myUnorderedMap()
     : capacity(512), m_begin(nullptr), m_rbegin(nullptr), m_end(nullptr),
-        m_rend(nullptr), max_load_factor(1.0f), size(0), bucket_count_val(0)
-    {
-        //cout << "Constructor!" << "\n";
-        hash_set.resize(capacity, nullptr);
-    }
+      m_rend(nullptr), max_load_factor(1.0f), size(0), bucket_count_val(0)
+{
+    //cout << "Constructor!" << "\n";
+    hash_set.resize(capacity, nullptr);
+}
 
 template<class Key, class T, class Hash>
 myUnorderedMap<Key, T, Hash>::~myUnorderedMap()
+{
+    if (size > 0)
     {
-        if (size > 0)
-        {
-            // Elimination of loop pointers (unbinding of each node)
-            nodes_unbinding();
-        }
+        // Elimination of loop pointers (unbinding of each node)
+        nodes_unbinding();
     }
+}
 
 template<class Key, class T, class Hash>
 myUnorderedMap<Key, T, Hash>::myUnorderedMap(const myUnorderedMap& other_map)
         : capacity(other_map.capacity), m_begin(nullptr), m_rbegin(nullptr), m_end(nullptr),
-        m_rend(nullptr), max_load_factor(1.0f), size(0), bucket_count_val(0)
-    {
-        cout << "Copy operator()" << "\n";
-        if (this == &other_map) return;
+          m_rend(nullptr), max_load_factor(1.0f), size(0), bucket_count_val(0)
+{
+    cout << "Copy operator()" << "\n";
+    if (this == &other_map) return;
 
-        copy_handler(other_map);
-    }
+    copy_handler(other_map);
+}
 
 template<class Key, class T, class Hash>
 myUnorderedMap<Key, T>& myUnorderedMap<Key, T, Hash>::operator=(const myUnorderedMap& other_map)
-    {
-        cout << "Copy operator=" << "\n";
+{
+    cout << "Copy operator=" << "\n";
 
-        if (this == &other_map) return *this;
+    if (this == &other_map) return *this;
 
-        copy_handler(other_map);
+    copy_handler(other_map);
 
-        return *this;
-    }
+    return *this;
+}
 
 template<class Key, class T, class Hash>
 myUnorderedMap<Key, T, Hash>::myUnorderedMap(myUnorderedMap&& other_map) noexcept
         : capacity(other_map.capacity), m_begin(nullptr), m_rbegin(nullptr), m_end(nullptr),
-        m_rend(nullptr), max_load_factor(0.0f), size(0), bucket_count_val(0)
-    {
-        cout << "Move operator()" << "\n";
-        if (this == &other_map) return;
+          m_rend(nullptr), max_load_factor(0.0f), size(0), bucket_count_val(0)
+{
+    cout << "Move operator()" << "\n";
+    if (this == &other_map) return;
 
-        move_handler(move(other_map));
-    }
+    move_handler(move(other_map));
+}
 
 template<class Key, class T, class Hash>
 myUnorderedMap<Key, T>& myUnorderedMap<Key, T, Hash>::operator=(myUnorderedMap&& other_map) noexcept
-    {
-        cout << "Move operator=" << "\n";
-        if (this == &other_map) return *this;
+{
+    cout << "Move operator=" << "\n";
+    if (this == &other_map) return *this;
 
-        move_handler(move(other_map));
+    move_handler(move(other_map));
 
-        return *this;
-    }
+    return *this;
+}
 
 template<class Key, class T, class Hash>
 T& myUnorderedMap<Key, T, Hash>::operator[](const Key& key)
+{
+    // check if it's time to rehash
+    /*if (size > 0 && load_factor() > max_load_factor)
     {
-        // check if it's time to rehash
-        /*if (size > 0 && load_factor() > max_load_factor)
+        capacity *= 2;
+        rehash(capacity);
+    }*/
+
+    size_t hash_val = hash_func(key);
+    size++;
+
+if (hash_set[hash_val] == nullptr)
+    {
+        // if node with corresponding hash_val doesn't exist,
+        // create new node, connect it to the main linked list and
+        // put it's pointer to the hash_set.
+        auto node = make_shared<ListNode>(key, hash_val);
+        bucket_count_val++;
+        if (size == 1)
         {
-            capacity *= 2;
-            rehash(capacity);
-        }*/
+            hash_set[hash_val] = node;
+            m_begin = node;
+            m_rbegin = node;
 
-        size_t hash_val = hash_func(key);
-        size++;
-
-        if (hash_set[hash_val] == nullptr)
-        {
-            // if node with corresponding hash_val doesn't exist,
-            // create new node, connect it to the main linked list and
-            // put it's pointer to the hash_set.
-            auto node = make_shared<ListNode<Key, T>>(key, hash_val);
-            bucket_count_val++;
-            if (size == 1)
-            {
-                hash_set[hash_val] = node;
-                m_begin = node;
-                m_rbegin = node;
-
-                create_end_fake_node();
-            }
-            else
-            {
-                hash_set[hash_val] = node;
-                m_rbegin->next = node;
-                node->prev = m_rbegin;
-                m_rbegin = node;
-                node->next = m_end;
-            }
-
-            return node->data_pair.second;
+            create_end_fake_node();
         }
         else
         {
-            // if node with corresponding hash_val exists,
-            // just change value of ListNode with corresponding key.
-            shared_ptr<ListNode<Key, T>> it = hash_set[hash_val];
-            shared_ptr<ListNode<Key, T>> prev_it;
-            while (it != m_end && it->hash_val == hash_val)
-            {
-                if (it->data_pair.first == key)
-                {
-                    return it->data_pair.second;
-                }
-                prev_it = it;
-                it = it->next;
-            }
-
-            // if node with corresponding key doesn't exist,
-            // create new node and add it to the ending of 
-            // the corresponding bucket.
-            auto node = make_shared<ListNode<Key, T>>(key, hash_val);
-            prev_it->next = node;
-            node->prev = prev_it;
-            if (it != m_end)
-            {
-                node->next = it;
-                it->prev = node;
-            }
-            else
-            {
-                node->next = m_end;
-            }
-
-            return node->data_pair.second;
+            hash_set[hash_val] = node;
+            m_rbegin->next = node;
+            node->prev = m_rbegin;
+            m_rbegin = node;
+            node->next = m_end;
         }
+
+        return node->data_pair.second;
     }
+else
+    {
+        // if node with corresponding hash_val exists,
+        // just change value of ListNode with corresponding key.
+        shared_ptr<ListNode> it = hash_set[hash_val];
+        shared_ptr<ListNode> prev_it;
+        while (it != m_end && it->hash_val == hash_val)
+        {
+            if (it->data_pair.first == key)
+            {
+                return it->data_pair.second;
+            }
+            prev_it = it;
+            it = it->next;
+        }
+
+        // if node with corresponding key doesn't exist,
+        // create new node and add it to the ending of 
+        // the corresponding bucket.
+        auto node = make_shared<ListNode>(key, hash_val);
+        prev_it->next = node;
+        node->prev = prev_it;
+        if (it != m_end)
+        {
+            node->next = it;
+            it->prev = node;
+        }
+        else
+        {
+            node->next = m_end;
+        }
+
+        return node->data_pair.second;
+    }
+}
 
 template<class Key, class T, class Hash>
 void myUnorderedMap<Key, T, Hash>::print()
+{
+    if (m_begin == nullptr) cout << "Called map is empty!" << endl;
+    shared_ptr<ListNode> it = m_begin;
+    while (it != m_end)
     {
-        if (m_begin == nullptr) cout << "Called map is empty!" << endl;
-        shared_ptr<ListNode<Key, T>> it = m_begin;
-        while (it != m_end)
-        {
-            cout << it->data_pair.second << " ";
-            it = it->next;
-        }
-        cout << endl;
+        cout << it->data_pair.second << " ";
+        it = it->next;
     }
+    cout << endl;
+}
 
 template<class Key, class T, class Hash>
 size_t myUnorderedMap<Key, T, Hash>::Size()
-    {
-        return size;
-    }
+{
+    return size;
+}
 
 template<class Key, class T, class Hash>
 bool myUnorderedMap<Key, T, Hash>::isEmpty()
+{
+    bool isEmpty = 1;
+    for (const auto& pListNode : hash_set)
     {
-        bool isEmpty = 1;
-        for (const auto& pListNode : hash_set)
+        if (pListNode != nullptr)
         {
-            if (pListNode != nullptr)
-            {
-                isEmpty = 0;
-                return isEmpty;
-            }
+            isEmpty = 0;
+            return isEmpty;
         }
-        return isEmpty;
     }
+    return isEmpty;
+}
 
 template<class Key, class T, class Hash>
 pair<const Key, T>* myUnorderedMap<Key, T, Hash>::brute_force_find(const Key& key)
+{
+    if (m_begin == nullptr) cout << "Find error! Map is empty!" << endl;
+    auto it = m_begin;
+    Key target = it->data_pair.first;
+    while (target != key)
     {
-        if (m_begin == nullptr) cout << "Find error! Map is empty!" << endl;
-        auto it = m_begin;
+        it = it->next;
+        if (it == m_end)
+        {
+            cout << "Element with key " << key
+                << " wasn't found." << "\n";
+            return nullptr;
+        }
+        target = it->data_pair.first;
+    }
+    return &(it->data_pair);
+}
+
+template<class Key, class T, class Hash>
+pair<const Key, T>* myUnorderedMap<Key, T, Hash>::find(const Key& key)
+{
+    // if hash_func - random, this 'find' won't work!
+    // TODO:
+    // how to prevent implicit convertion, if I write
+    // find_by_hash(int_value) ?
+    if (m_begin == nullptr) cout << "Find error! Map is empty!" << endl;
+    size_t hash_val = hash_func(key);
+    auto it = hash_set[hash_val];
+    if (it == nullptr)
+    {
+        cout << "Element with the key " << key
+            << " wasn't found." << "\n";
+        return nullptr;
+    }
+    else
+    {
         Key target = it->data_pair.first;
-        while (target != key)
+        while (key != target)
         {
             it = it->next;
             if (it == m_end)
             {
-                cout << "Element with key " << key
+                cout << "Element with the key " << key
                     << " wasn't found." << "\n";
                 return nullptr;
             }
@@ -339,153 +378,132 @@ pair<const Key, T>* myUnorderedMap<Key, T, Hash>::brute_force_find(const Key& ke
         }
         return &(it->data_pair);
     }
-
-template<class Key, class T, class Hash>
-pair<const Key, T>* myUnorderedMap<Key, T, Hash>::find(const Key& key)
-    {
-        // if hash_func - random, this 'find' won't work!
-        // TODO:
-        // how to prevent implicit convertion, if I write
-        // find_by_hash(int_value) ?
-        if (m_begin == nullptr) cout << "Find error! Map is empty!" << endl;
-        size_t hash_val = hash_func(key);
-        auto it = hash_set[hash_val];
-        if (it == nullptr)
-        {
-            cout << "Element with the key " << key
-                << " wasn't found." << "\n";
-            return nullptr;
-        }
-        else
-        {
-            Key target = it->data_pair.first;
-            while (key != target)
-            {
-                it = it->next;
-                if (it == m_end)
-                {
-                    cout << "Element with the key " << key
-                        << " wasn't found." << "\n";
-                    return nullptr;
-                }
-                target = it->data_pair.first;
-            }
-            return &(it->data_pair);
-        }
-    }
+}
 
 template<class Key, class T, class Hash>
 size_t myUnorderedMap<Key, T, Hash>::max_bucket_count()
-    {
-        return capacity;
-    }
+{
+    return capacity;
+}
 
 template<class Key, class T, class Hash>
 size_t myUnorderedMap<Key, T, Hash>::bucket_count()
-    {
-        return bucket_count_val;
-    }
+{
+    return bucket_count_val;
+}
 
 template<class Key, class T, class Hash>
 float myUnorderedMap<Key, T, Hash>::load_factor()
-    {
-        return static_cast<float>(Size()) / bucket_count();
-    }
+{
+    return static_cast<float>(Size()) / bucket_count();
+}
 
 template<class Key, class T, class Hash>
-typename myUnorderedMap<Key, T, Hash>::Iterator myUnorderedMap<Key, T, Hash>::begin()
-    {
-        return Iterator(m_begin.get());
-    }
+typename myUnorderedMap<Key, T, Hash>::iterator myUnorderedMap<Key, T, Hash>::begin()
+{
+    return iterator(m_begin.get());
+}
 
 template<class Key, class T, class Hash>
-typename myUnorderedMap<Key, T, Hash>::Iterator myUnorderedMap<Key, T, Hash>::end()
-    {
-        return Iterator(m_end.get());
-    }
+typename myUnorderedMap<Key, T, Hash>::const_iterator myUnorderedMap<Key, T, Hash>::begin() const
+{
+    return const_iterator(m_begin.get());
+}
+
+template<class Key, class T, class Hash>
+typename myUnorderedMap<Key, T, Hash>::iterator myUnorderedMap<Key, T, Hash>::end()
+{
+    return iterator(m_end.get());
+}
+
+template<class Key, class T, class Hash>
+typename myUnorderedMap<Key, T, Hash>::const_iterator myUnorderedMap<Key, T, Hash>::end() const
+{
+    return const_iterator(m_end.get());
+}
 
 template<class Key, class T, class Hash>
 size_t myUnorderedMap<Key, T, Hash>::hash_func(const Key& key)
-    {
-        /*size_t hash_val = static_cast<int>(key) % capacity;*/
-        size_t hash_val = Hash{}(key) % capacity;
-        return hash_val;
-    }
+{
+    /*size_t hash_val = static_cast<int>(key) % capacity;*/
+    size_t hash_val = Hash{}(key) % capacity;
+    return hash_val;
+}
 
 template<class Key, class T, class Hash>
 void myUnorderedMap<Key, T, Hash>::copy_handler(const myUnorderedMap& other_map)
-    {
-        hash_set = other_map.hash_set;
-        size = other_map.size;
-        capacity = other_map.capacity;
-        max_load_factor = other_map.max_load_factor;
-        bucket_count_val = other_map.bucket_count_val;
-        auto new_node = make_shared<ListNode<Key, T>>(*other_map.m_begin);
-        m_begin = new_node;
-        hash_set[new_node->hash_val] = new_node;
+{
+    hash_set = other_map.hash_set;
+    size = other_map.size;
+    capacity = other_map.capacity;
+    max_load_factor = other_map.max_load_factor;
+    bucket_count_val = other_map.bucket_count_val;
+    auto new_node = make_shared<ListNode>(*other_map.m_begin);
+    m_begin = new_node;
+    hash_set[new_node->hash_val] = new_node;
 
-        auto prev_it = new_node;
-        auto it = new_node->next;
-        // Complexity: O(n)
-        while (it != other_map.m_end)
+    auto prev_it = new_node;
+    auto it = new_node->next;
+    // Complexity: O(n)
+    while (it != other_map.m_end)
+    {
+        new_node = make_shared<ListNode>(*it);
+        prev_it->next = new_node;
+        new_node->prev = prev_it;
+        if (new_node->hash_val != prev_it->hash_val)
         {
-            new_node = make_shared<ListNode<Key, T>>(*it);
-            prev_it->next = new_node;
-            new_node->prev = prev_it;
-            if (new_node->hash_val != prev_it->hash_val)
-            {
-                hash_set[new_node->hash_val] = new_node;
-            }
-            it = it->next;
-            prev_it = prev_it->next;
+            hash_set[new_node->hash_val] = new_node;
         }
-        m_rbegin = prev_it;
-        create_end_fake_node();
-        m_rbegin->next = m_end;
+        it = it->next;
+        prev_it = prev_it->next;
     }
+    m_rbegin = prev_it;
+    create_end_fake_node();
+    m_rbegin->next = m_end;
+}
 
 template<class Key, class T, class Hash>
 void myUnorderedMap<Key, T, Hash>::move_handler(myUnorderedMap&& other_map)
-    {
-        nodes_unbinding();
-        hash_set = move(other_map.hash_set);
-        size = exchange(other_map.size, 0);
-        capacity = exchange(other_map.capacity, 0);
-        max_load_factor = exchange(other_map.max_load_factor, 0);
-        bucket_count_val = exchange(other_map.bucket_count_val, 0);
-        m_begin = exchange(other_map.m_begin, nullptr);
-        m_end = exchange(other_map.m_end, nullptr);
-        m_rbegin = exchange(other_map.m_rbegin, nullptr);
-        m_rend = exchange(other_map.m_rend,nullptr);
-    }
+{
+    nodes_unbinding();
+    hash_set = move(other_map.hash_set);
+    size = exchange(other_map.size, 0);
+    capacity = exchange(other_map.capacity, 0);
+    max_load_factor = exchange(other_map.max_load_factor, 0);
+    bucket_count_val = exchange(other_map.bucket_count_val, 0);
+    m_begin = exchange(other_map.m_begin, nullptr);
+    m_end = exchange(other_map.m_end, nullptr);
+    m_rbegin = exchange(other_map.m_rbegin, nullptr);
+    m_rend = exchange(other_map.m_rend,nullptr);
+}
 
 template<class Key, class T, class Hash>
 void myUnorderedMap<Key, T, Hash>::create_end_fake_node()
-    {
-        auto fake_shared_ptr = make_shared<ListNode<Key, T>>();
-        m_end = fake_shared_ptr;
-        m_rend = fake_shared_ptr;
-        m_rbegin->next = m_end;
-        m_begin->prev = m_rend;
-    }
+{
+    auto fake_shared_ptr = make_shared<ListNode>();
+    m_end = fake_shared_ptr;
+    m_rend = fake_shared_ptr;
+    m_rbegin->next = m_end;
+    m_begin->prev = m_rend;
+}
 
 template<class Key, class T, class Hash>
 void myUnorderedMap<Key, T, Hash>::nodes_unbinding()
+{
+    // ListNode nodes unbinding, before ~Destructor and MoveCtor
+    // to prevent memory leaks due to nodes looped binding. 
+    auto prev_it = m_begin;
+    auto it = prev_it->next;
+    m_begin = nullptr;
+    m_rbegin = nullptr;
+    m_rend = nullptr;
+    while (it != m_end)
     {
-        // ListNode nodes unbinding, before ~Destructor and MoveCtor
-        // to prevent memory leaks due to nodes looped binding. 
-        auto prev_it = m_begin;
-        auto it = prev_it->next;
-        m_begin = nullptr;
-        m_rbegin = nullptr;
-        m_rend = nullptr;
-        while (it != m_end)
-        {
-            prev_it->prev = nullptr;
-            prev_it->next = nullptr;
-            prev_it = it;
-            it = it->next;
-        }
         prev_it->prev = nullptr;
         prev_it->next = nullptr;
+        prev_it = it;
+        it = it->next;
     }
+    prev_it->prev = nullptr;
+    prev_it->next = nullptr;
+}
