@@ -38,7 +38,7 @@ int main()
     assert(intMapOther.isEmpty());
     
     // print()
-    intMap.print();
+    // intMap.print();
     /*doubleMap.print();
     stringMap.print();*/
 
@@ -57,19 +57,29 @@ int main()
     cout << "bucket_count: " << doubleMap.bucket_count() << "\n";
     cout << "load_factor: " << doubleMap.load_factor() << "\n";
 
-    // iterator
-    myUnorderedMap<double, double>::iterator it = doubleMap.begin();
+    // iterator and const_iterator
+    myUnorderedMap<int, int> iterator_test_map;
+    for (int i = 0; i < 10; i++)
+    {
+        iterator_test_map[i] = i + 50;
+    }
+    myUnorderedMap<int, int> ::iterator it = iterator_test_map.begin();
     for (size_t i = 0; i < 3; i++) ++it;
     cout << "it_to_begin++ 3 times: " << it->second << "\n";
 
     for (size_t i = 0; i < 3; i++) --it;
     cout << "it_to_begin-- 3 times: " << it->second << "\n";
 
-    for (auto& pr : doubleMap)
+    for (auto& pr : iterator_test_map)
     {
         cout << pr.second << " ";
     }
     cout << "\n";
+    auto const_it = iterator_test_map.cbegin();
+    for (const auto& pr : iterator_test_map)
+    {
+        cout << pr.second << " ";
+    }
 
     // performance test
     // with the current rehash implementation, the write speed
