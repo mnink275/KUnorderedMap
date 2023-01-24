@@ -79,8 +79,8 @@ public:
         std::conditional_t<IsConst, const pointer, pointer> ptr;
     };
 public:
-    using iterator = typename CommonIterator<false>;
-    using const_iterator = typename CommonIterator<true>;
+    using iterator = CommonIterator<false>;
+    using const_iterator = CommonIterator<true>;
 
 public:
     // constructor and destructor
