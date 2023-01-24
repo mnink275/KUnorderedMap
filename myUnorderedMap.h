@@ -122,12 +122,13 @@ public:
     void rehash(size_t new_capacity);
 
     iterator begin();
-
-    const_iterator begin() const;
-
     iterator end();
 
+    const_iterator begin() const;
     const_iterator end() const;
+    // mb it's possible to merge above and below functions
+    const_iterator cbegin() const;
+    const_iterator cend() const;
 
 private:
     size_t hash_func(const Key& key);
@@ -153,7 +154,6 @@ private:
     float max_load_factor;
     size_t bucket_count_val;
 };
-
 
 template<class Key, class T, class Hash>
 myUnorderedMap<Key, T, Hash>::myUnorderedMap()
@@ -461,25 +461,43 @@ void myUnorderedMap<Key, T, Hash>::rehash(size_t new_capacity)
 }
 
 template<class Key, class T, class Hash>
-typename myUnorderedMap<Key, T, Hash>::iterator myUnorderedMap<Key, T, Hash>::begin()
+typename myUnorderedMap<Key, T, Hash>
+    ::iterator myUnorderedMap<Key, T, Hash>::begin()
 {
     return iterator(m_begin.get());
 }
 
 template<class Key, class T, class Hash>
-typename myUnorderedMap<Key, T, Hash>::const_iterator myUnorderedMap<Key, T, Hash>::begin() const
+typename myUnorderedMap<Key, T, Hash>
+    ::const_iterator myUnorderedMap<Key, T, Hash>::begin() const
 {
     return const_iterator(m_begin.get());
 }
 
 template<class Key, class T, class Hash>
-typename myUnorderedMap<Key, T, Hash>::iterator myUnorderedMap<Key, T, Hash>::end()
+typename myUnorderedMap<Key, T, Hash>
+    ::iterator myUnorderedMap<Key, T, Hash>::end()
 {
     return iterator(m_end.get());
 }
 
 template<class Key, class T, class Hash>
-typename myUnorderedMap<Key, T, Hash>::const_iterator myUnorderedMap<Key, T, Hash>::end() const
+typename myUnorderedMap<Key, T, Hash>
+    ::const_iterator myUnorderedMap<Key, T, Hash>::end() const
+{
+    return const_iterator(m_end.get());
+}
+
+template<class Key, class T, class Hash>
+typename myUnorderedMap<Key, T, Hash>
+    ::const_iterator myUnorderedMap<Key, T, Hash>::cbegin() const
+{
+    return const_iterator(m_begin.get());
+}
+
+template<class Key, class T, class Hash>
+typename myUnorderedMap<Key, T, Hash>
+    ::const_iterator myUnorderedMap<Key, T, Hash>::cend() const
 {
     return const_iterator(m_end.get());
 }
