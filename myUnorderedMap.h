@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cassert>
+#include <functional>
 #include <iostream>
 #include <vector>
 #include <memory>
@@ -122,7 +124,7 @@ public:
     iterator begin();
 
     const_iterator begin() const;
-    
+
     iterator end();
 
     const_iterator end() const;
@@ -155,8 +157,8 @@ private:
 
 template<class Key, class T, class Hash>
 myUnorderedMap<Key, T, Hash>::myUnorderedMap()
-    : capacity(512), m_begin(nullptr), m_rbegin(nullptr), m_end(nullptr),
-      m_rend(nullptr), max_load_factor(1.0f), size(0), bucket_count_val(0)
+    : capacity(239), m_begin(nullptr), m_rbegin(nullptr), m_end(nullptr),
+    m_rend(nullptr), max_load_factor(2.0f), size(0), bucket_count_val(0)
 {
     //cout << "Constructor!" << "\n";
     hash_set.resize(capacity, nullptr);
@@ -174,8 +176,8 @@ myUnorderedMap<Key, T, Hash>::~myUnorderedMap()
 
 template<class Key, class T, class Hash>
 myUnorderedMap<Key, T, Hash>::myUnorderedMap(const myUnorderedMap& other_map)
-        : capacity(other_map.capacity), m_begin(nullptr), m_rbegin(nullptr), m_end(nullptr),
-          m_rend(nullptr), max_load_factor(1.0f), size(0), bucket_count_val(0)
+    : capacity(other_map.capacity), m_begin(nullptr), m_rbegin(nullptr), m_end(nullptr),
+    m_rend(nullptr), max_load_factor(2.0f), size(0), bucket_count_val(0)
 {
     cout << "Copy operator()" << "\n";
     if (this == &other_map) return;
@@ -197,8 +199,8 @@ myUnorderedMap<Key, T>& myUnorderedMap<Key, T, Hash>::operator=(const myUnordere
 
 template<class Key, class T, class Hash>
 myUnorderedMap<Key, T, Hash>::myUnorderedMap(myUnorderedMap&& other_map) noexcept
-        : capacity(other_map.capacity), m_begin(nullptr), m_rbegin(nullptr), m_end(nullptr),
-          m_rend(nullptr), max_load_factor(0.0f), size(0), bucket_count_val(0)
+    : capacity(other_map.capacity), m_begin(nullptr), m_rbegin(nullptr), m_end(nullptr),
+    m_rend(nullptr), max_load_factor(0.0f), size(0), bucket_count_val(0)
 {
     cout << "Move operator()" << "\n";
     if (this == &other_map) return;
@@ -221,16 +223,16 @@ template<class Key, class T, class Hash>
 T& myUnorderedMap<Key, T, Hash>::operator[](const Key& key)
 {
     // check if it's time to rehash
-    /*if (size > 0 && load_factor() > max_load_factor)
+    if (size > 0 && load_factor() > max_load_factor)
     {
-        capacity *= 2;
+        capacity = 2 * capacity + 1;
         rehash(capacity);
-    }*/
+    }
 
     size_t hash_val = hash_func(key);
     size++;
 
-if (hash_set[hash_val] == nullptr)
+    if (hash_set[hash_val] == nullptr)
     {
         // if node with corresponding hash_val doesn't exist,
         // create new node, connect it to the main linked list and
@@ -256,7 +258,7 @@ if (hash_set[hash_val] == nullptr)
 
         return node->data_pair.second;
     }
-else
+    else
     {
         // if node with corresponding hash_val exists,
         // just change value of ListNode with corresponding key.
@@ -399,6 +401,66 @@ float myUnorderedMap<Key, T, Hash>::load_factor()
 }
 
 template<class Key, class T, class Hash>
+void myUnorderedMap<Key, T, Hash>::rehash(size_t new_capacity)
+{
+    hash_set.clear();
+    hash_set.resize(new_capacity, nullptr);
+
+    capacity = new_capacity;
+    bucket_count_val = 0;
+
+    // let the "begin node" to be the first one in the expanded hash_set
+    size_t curr_hash = hash_func(m_begin->data_pair.first);
+    hash_set[curr_hash] = m_begin;
+    auto it = m_begin->next;
+    auto next_it = it->next;
+    //m_begin->next = nullptr;
+    m_begin->hash_val = curr_hash;
+    m_rbegin = m_begin;
+
+    // loop for other nodes
+    while (it != m_end)
+    {
+        curr_hash = hash_func(it->data_pair.first);
+        it->hash_val = curr_hash;
+        if (hash_set[curr_hash] == nullptr)
+        {
+            bucket_count_val++;
+            hash_set[curr_hash] = it;
+            m_rbegin->next = it;
+            it->prev = m_rbegin;
+            it->next = m_end;
+            m_rbegin = it;
+        }
+        else
+        {
+            auto bucket_it = hash_set[curr_hash];
+            auto bucket_it_next = bucket_it->next;
+            while (bucket_it_next != m_end && bucket_it_next->hash_val == curr_hash)
+            {
+                bucket_it = bucket_it_next;
+                bucket_it_next = bucket_it_next->next;
+            }
+            bucket_it->next = it;
+            it->prev = bucket_it;
+            it->next = bucket_it_next;
+            if (bucket_it_next != m_end)
+            {
+                bucket_it_next->prev = it;
+            }
+            else
+            {
+                //assert(m_rbegin->next == it);
+                m_rbegin = it;
+            }  
+        }
+
+        it = next_it;
+        if (it != m_end) next_it = next_it->next;
+    }
+}
+
+template<class Key, class T, class Hash>
 typename myUnorderedMap<Key, T, Hash>::iterator myUnorderedMap<Key, T, Hash>::begin()
 {
     return iterator(m_begin.get());
@@ -474,7 +536,7 @@ void myUnorderedMap<Key, T, Hash>::move_handler(myUnorderedMap&& other_map)
     m_begin = exchange(other_map.m_begin, nullptr);
     m_end = exchange(other_map.m_end, nullptr);
     m_rbegin = exchange(other_map.m_rbegin, nullptr);
-    m_rend = exchange(other_map.m_rend,nullptr);
+    m_rend = exchange(other_map.m_rend, nullptr);
 }
 
 template<class Key, class T, class Hash>
