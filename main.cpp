@@ -72,6 +72,8 @@ int main()
     cout << "\n";
 
     // performance test
+    // with the current rehash implementation, the write speed
+    // of 7000 elements has increased by about 2 times
     myUnorderedMap<int, int> PerformanceTest;
 
     time_point<high_resolution_clock> start_point, end_point;
