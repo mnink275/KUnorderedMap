@@ -6,11 +6,12 @@
 #include <vector>
 #include <memory>
 #include <cmath>
+#include <initializer_list>
 
 using namespace std;
 
 template<class Key, class T, class Hash = std::hash<Key>>
-class myUnorderedMap
+class MyUnorderedMap
 {
 private:
     // bidirectional list
@@ -86,20 +87,16 @@ public:
     using const_iterator = CommonIterator<true>;
 
 public:
-    // constructor and destructor
-    myUnorderedMap();
+    MyUnorderedMap();
+    ~MyUnorderedMap();
 
-    ~myUnorderedMap();
+    MyUnorderedMap(const MyUnorderedMap& other_map);
+    MyUnorderedMap<Key, T>& operator=(const MyUnorderedMap& other_map);
 
-    // copy constructors
-    myUnorderedMap(const myUnorderedMap& other_map);
+    MyUnorderedMap(MyUnorderedMap&& other_map) noexcept;
+    MyUnorderedMap<Key, T>& operator=(MyUnorderedMap&& other_map) noexcept;
 
-    myUnorderedMap<Key, T>& operator=(const myUnorderedMap& other_map);
-
-    // move constructors
-    myUnorderedMap(myUnorderedMap&& other_map) noexcept;
-
-    myUnorderedMap<Key, T>& operator=(myUnorderedMap&& other_map) noexcept;
+    MyUnorderedMap(std::initializer_list<std::pair<const Key, T>> init_list);
 
     // Capacity:
     size_t Size() const; // O(1)
@@ -109,6 +106,7 @@ public:
     // Lookup:
     pair<const Key, T>* brute_force_find(const Key& key);
     iterator find(const Key& key);
+    const_iterator find(const Key& key) const;
     T& operator[](const Key& key); // Avg: O(1), Worst: O(n)
     void print() const; // O(n)
 
@@ -133,11 +131,13 @@ public:
     const_iterator cend() const; // O(1)
 
 private:
-    size_t hash_func(const Key& key);
-    void copy_handler(const myUnorderedMap& other_map);
-    void move_handler(myUnorderedMap&& other_map);
+    size_t hash_func(const Key& key) const;
+    void copy_handler(const MyUnorderedMap& other_map);
+    void move_handler(MyUnorderedMap&& other_map);
     void create_end_fake_node();
     void nodes_unbinding();
+    template<class CommonIt>
+    CommonIt find_helper(const Key& key) const;
 
 private:
     vector<shared_ptr<ListNode>> hash_set;
@@ -155,7 +155,7 @@ private:
 };
 
 template<class Key, class T, class Hash>
-myUnorderedMap<Key, T, Hash>::myUnorderedMap()
+MyUnorderedMap<Key, T, Hash>::MyUnorderedMap()
     : capacity(239), m_begin(nullptr), m_rbegin(nullptr), m_end(nullptr),
     m_rend(nullptr), max_load_factor(2.0f), size(0), bucket_count_val(0),
     is_empty(true)
@@ -165,7 +165,7 @@ myUnorderedMap<Key, T, Hash>::myUnorderedMap()
 }
 
 template<class Key, class T, class Hash>
-myUnorderedMap<Key, T, Hash>::~myUnorderedMap()
+MyUnorderedMap<Key, T, Hash>::~MyUnorderedMap()
 {
     if (size > 0)
     {
@@ -175,7 +175,7 @@ myUnorderedMap<Key, T, Hash>::~myUnorderedMap()
 }
 
 template<class Key, class T, class Hash>
-myUnorderedMap<Key, T, Hash>::myUnorderedMap(const myUnorderedMap& other_map)
+MyUnorderedMap<Key, T, Hash>::MyUnorderedMap(const MyUnorderedMap& other_map)
     : capacity(other_map.capacity), m_begin(nullptr), m_rbegin(nullptr), m_end(nullptr),
     m_rend(nullptr), max_load_factor(2.0f), size(0), bucket_count_val(0),
     is_empty(other_map.is_empty)
@@ -187,7 +187,7 @@ myUnorderedMap<Key, T, Hash>::myUnorderedMap(const myUnorderedMap& other_map)
 }
 
 template<class Key, class T, class Hash>
-myUnorderedMap<Key, T>& myUnorderedMap<Key, T, Hash>::operator=(const myUnorderedMap& other_map)
+MyUnorderedMap<Key, T>& MyUnorderedMap<Key, T, Hash>::operator=(const MyUnorderedMap& other_map)
 {
     cout << "Copy operator=" << "\n";
 
@@ -199,7 +199,7 @@ myUnorderedMap<Key, T>& myUnorderedMap<Key, T, Hash>::operator=(const myUnordere
 }
 
 template<class Key, class T, class Hash>
-myUnorderedMap<Key, T, Hash>::myUnorderedMap(myUnorderedMap&& other_map) noexcept
+MyUnorderedMap<Key, T, Hash>::MyUnorderedMap(MyUnorderedMap&& other_map) noexcept
     : capacity(other_map.capacity), m_begin(nullptr), m_rbegin(nullptr), m_end(nullptr),
     m_rend(nullptr), max_load_factor(0.0f), size(0), bucket_count_val(0),
     is_empty(other_map.is_empty)
@@ -211,7 +211,7 @@ myUnorderedMap<Key, T, Hash>::myUnorderedMap(myUnorderedMap&& other_map) noexcep
 }
 
 template<class Key, class T, class Hash>
-myUnorderedMap<Key, T>& myUnorderedMap<Key, T, Hash>::operator=(myUnorderedMap&& other_map) noexcept
+MyUnorderedMap<Key, T>& MyUnorderedMap<Key, T, Hash>::operator=(MyUnorderedMap&& other_map) noexcept
 {
     cout << "Move operator=" << "\n";
     if (this == &other_map) return *this;
@@ -222,7 +222,15 @@ myUnorderedMap<Key, T>& myUnorderedMap<Key, T, Hash>::operator=(myUnorderedMap&&
 }
 
 template<class Key, class T, class Hash>
-T& myUnorderedMap<Key, T, Hash>::operator[](const Key& key)
+MyUnorderedMap<Key, T, Hash>
+    ::MyUnorderedMap(std::initializer_list<std::pair<const Key, T>> init_list)
+{
+    // move through list
+    // ???
+}
+
+template<class Key, class T, class Hash>
+T& MyUnorderedMap<Key, T, Hash>::operator[](const Key& key)
 {
     // check if it's time to rehash
     if (size > 0 && loadFactor() > max_load_factor)
@@ -298,7 +306,7 @@ T& myUnorderedMap<Key, T, Hash>::operator[](const Key& key)
 }
 
 template<class Key, class T, class Hash>
-void myUnorderedMap<Key, T, Hash>::print() const
+void MyUnorderedMap<Key, T, Hash>::print() const
 {
     if (m_begin == nullptr) cout << "Called map is empty!" << endl;
     shared_ptr<ListNode> it = m_begin;
@@ -311,19 +319,19 @@ void myUnorderedMap<Key, T, Hash>::print() const
 }
 
 template<class Key, class T, class Hash>
-size_t myUnorderedMap<Key, T, Hash>::Size() const
+size_t MyUnorderedMap<Key, T, Hash>::Size() const
 {
     return size;
 }
 
 template<class Key, class T, class Hash>
-bool myUnorderedMap<Key, T, Hash>::isEmpty() const
+bool MyUnorderedMap<Key, T, Hash>::isEmpty() const
 {
     return is_empty;
 }
 
 template<class Key, class T, class Hash>
-pair<const Key, T>* myUnorderedMap<Key, T, Hash>::brute_force_find(const Key& key)
+pair<const Key, T>* MyUnorderedMap<Key, T, Hash>::brute_force_find(const Key& key)
 {
     if (m_begin == nullptr) cout << "Find error! Map is empty!" << endl;
     auto it = m_begin;
@@ -343,66 +351,51 @@ pair<const Key, T>* myUnorderedMap<Key, T, Hash>::brute_force_find(const Key& ke
 }
 
 template<class Key, class T, class Hash>
-typename myUnorderedMap<Key, T, Hash>
-    ::iterator myUnorderedMap<Key, T, Hash>::find(const Key& key)
+typename MyUnorderedMap<Key, T, Hash>
+    ::iterator MyUnorderedMap<Key, T, Hash>::find(const Key& key)
 {
-    if (m_begin == nullptr) return iterator(m_end.get());
-    size_t hash_val = hash_func(key);
-    auto it = hash_set[hash_val];
-    if (it == nullptr)
-    {
-        return iterator(m_end.get());
-    }
-    else
-    {
-        // TODO: bad if the Key is huge class cos
-        // copy ctor is invoked here (below)
-        Key target = it->data_pair.first;
-        while (key != target)
-        {
-            it = it->next;
-            if (it == m_end)
-            {
-                return iterator(m_end.get());
-            }
-            target = it->data_pair.first;
-        }
-        return iterator(it.get());
-    }
+    return find_helper<iterator>(key);
 }
 
 template<class Key, class T, class Hash>
-size_t myUnorderedMap<Key, T, Hash>::max_bucket_count() const
+typename MyUnorderedMap<Key, T, Hash>
+    ::const_iterator MyUnorderedMap<Key, T, Hash>::find(const Key& key) const
+{
+    return find_helper<const_iterator>(key);
+}
+
+template<class Key, class T, class Hash>
+size_t MyUnorderedMap<Key, T, Hash>::max_bucket_count() const
 {
     return capacity;
 }
 
 template<class Key, class T, class Hash>
-size_t myUnorderedMap<Key, T, Hash>::bucket_count() const
+size_t MyUnorderedMap<Key, T, Hash>::bucket_count() const
 {
     return bucket_count_val;
 }
 
 template<class Key, class T, class Hash>
-float myUnorderedMap<Key, T, Hash>::loadFactor() const
+float MyUnorderedMap<Key, T, Hash>::loadFactor() const
 {
     return static_cast<float>(Size()) / bucket_count();
 }
 
 template<class Key, class T, class Hash>
-float myUnorderedMap<Key, T, Hash>::maxLoadFactor() const
+float MyUnorderedMap<Key, T, Hash>::maxLoadFactor() const
 {
     return max_load_factor;
 }
 
 template<class Key, class T, class Hash>
-void myUnorderedMap<Key, T, Hash>::maxLoadFactor(float new_max_load_factor)
+void MyUnorderedMap<Key, T, Hash>::maxLoadFactor(float new_max_load_factor)
 {
     max_load_factor = new_max_load_factor;
 }
 
 template<class Key, class T, class Hash>
-void myUnorderedMap<Key, T, Hash>::rehash(size_t new_capacity)
+void MyUnorderedMap<Key, T, Hash>::rehash(size_t new_capacity)
 {
     hash_set.clear(); // O(n)
     hash_set.resize(new_capacity, nullptr); // O(new_capacity - old_capacity)
@@ -462,55 +455,55 @@ void myUnorderedMap<Key, T, Hash>::rehash(size_t new_capacity)
 }
 
 template<class Key, class T, class Hash>
-void myUnorderedMap<Key, T, Hash>::reserve(size_t count)
+void MyUnorderedMap<Key, T, Hash>::reserve(size_t count)
 {
     rehash(std::ceil(count / max_load_factor));
 }
 
 template<class Key, class T, class Hash>
-typename myUnorderedMap<Key, T, Hash>
-    ::iterator myUnorderedMap<Key, T, Hash>::begin()
+typename MyUnorderedMap<Key, T, Hash>
+    ::iterator MyUnorderedMap<Key, T, Hash>::begin()
 {
     return iterator(m_begin.get());
 }
 
 template<class Key, class T, class Hash>
-typename myUnorderedMap<Key, T, Hash>
-    ::const_iterator myUnorderedMap<Key, T, Hash>::begin() const
+typename MyUnorderedMap<Key, T, Hash>
+    ::const_iterator MyUnorderedMap<Key, T, Hash>::begin() const
 {
     return const_iterator(m_begin.get());
 }
 
 template<class Key, class T, class Hash>
-typename myUnorderedMap<Key, T, Hash>
-    ::iterator myUnorderedMap<Key, T, Hash>::end()
+typename MyUnorderedMap<Key, T, Hash>
+    ::iterator MyUnorderedMap<Key, T, Hash>::end()
 {
     return iterator(m_end.get());
 }
 
 template<class Key, class T, class Hash>
-typename myUnorderedMap<Key, T, Hash>
-    ::const_iterator myUnorderedMap<Key, T, Hash>::end() const
+typename MyUnorderedMap<Key, T, Hash>
+    ::const_iterator MyUnorderedMap<Key, T, Hash>::end() const
 {
     return const_iterator(m_end.get());
 }
 
 template<class Key, class T, class Hash>
-typename myUnorderedMap<Key, T, Hash>
-    ::const_iterator myUnorderedMap<Key, T, Hash>::cbegin() const
+typename MyUnorderedMap<Key, T, Hash>
+    ::const_iterator MyUnorderedMap<Key, T, Hash>::cbegin() const
 {
     return const_iterator(m_begin.get());
 }
 
 template<class Key, class T, class Hash>
-typename myUnorderedMap<Key, T, Hash>
-    ::const_iterator myUnorderedMap<Key, T, Hash>::cend() const
+typename MyUnorderedMap<Key, T, Hash>
+    ::const_iterator MyUnorderedMap<Key, T, Hash>::cend() const
 {
     return const_iterator(m_end.get());
 }
 
 template<class Key, class T, class Hash>
-size_t myUnorderedMap<Key, T, Hash>::hash_func(const Key& key)
+size_t MyUnorderedMap<Key, T, Hash>::hash_func(const Key& key) const
 {
     /*size_t hash_val = static_cast<int>(key) % capacity;*/
     size_t hash_val = Hash{}(key) % capacity;
@@ -518,7 +511,7 @@ size_t myUnorderedMap<Key, T, Hash>::hash_func(const Key& key)
 }
 
 template<class Key, class T, class Hash>
-void myUnorderedMap<Key, T, Hash>::copy_handler(const myUnorderedMap& other_map)
+void MyUnorderedMap<Key, T, Hash>::copy_handler(const MyUnorderedMap& other_map)
 {
     hash_set = other_map.hash_set;
     size = other_map.size;
@@ -551,7 +544,7 @@ void myUnorderedMap<Key, T, Hash>::copy_handler(const myUnorderedMap& other_map)
 }
 
 template<class Key, class T, class Hash>
-void myUnorderedMap<Key, T, Hash>::move_handler(myUnorderedMap&& other_map)
+void MyUnorderedMap<Key, T, Hash>::move_handler(MyUnorderedMap&& other_map)
 {
     nodes_unbinding();
     hash_set = move(other_map.hash_set);
@@ -567,7 +560,7 @@ void myUnorderedMap<Key, T, Hash>::move_handler(myUnorderedMap&& other_map)
 }
 
 template<class Key, class T, class Hash>
-void myUnorderedMap<Key, T, Hash>::create_end_fake_node()
+void MyUnorderedMap<Key, T, Hash>::create_end_fake_node()
 {
     auto fake_shared_ptr = make_shared<ListNode>();
     m_end = fake_shared_ptr;
@@ -577,7 +570,7 @@ void myUnorderedMap<Key, T, Hash>::create_end_fake_node()
 }
 
 template<class Key, class T, class Hash>
-void myUnorderedMap<Key, T, Hash>::nodes_unbinding()
+void MyUnorderedMap<Key, T, Hash>::nodes_unbinding()
 {
     // ListNode nodes unbinding, before ~Destructor and MoveCtor
     // to prevent memory leaks due to nodes looped binding. 
@@ -595,4 +588,33 @@ void myUnorderedMap<Key, T, Hash>::nodes_unbinding()
     }
     prev_it->prev = nullptr;
     prev_it->next = nullptr;
+}
+
+template<class Key, class T, class Hash>
+template<class CommonIt>
+CommonIt MyUnorderedMap<Key, T, Hash>::find_helper(const Key& key) const
+{
+    if (m_begin == nullptr) return CommonIt(m_end.get());
+    size_t hash_val = hash_func(key);
+    auto it = hash_set[hash_val];
+    if (it == nullptr)
+    {
+        return CommonIt(m_end.get());
+    }
+    else
+    {
+        // TODO: bad if the Key is huge class cos
+        // copy ctor is invoked here (below)
+        Key target = it->data_pair.first;
+        while (key != target)
+        {
+            it = it->next;
+            if (it == m_end)
+            {
+                return CommonIt(m_end.get());
+            }
+            target = it->data_pair.first;
+        }
+        return CommonIt(it.get());
+    }
 }
