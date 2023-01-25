@@ -1,16 +1,15 @@
 #include "myUnorderedMap.h"
 #include <chrono>
 #include <string>
-#include <cassert>
 
 
 using namespace std::chrono;
 
 int main()
 {
-    myUnorderedMap<int, int> intMap;
-    myUnorderedMap<double, double> doubleMap;
-    myUnorderedMap<string, string> stringMap;
+    MyUnorderedMap<int, int> intMap;
+    MyUnorderedMap<double, double> doubleMap;
+    MyUnorderedMap<string, string> stringMap;
 
     // operator[]
     for (int i = 0; i < 700; i++)
@@ -21,6 +20,9 @@ int main()
         doubleMap[i + 0.5] = i + 100.5;
         stringMap["key" + to_string(i)] = "value" + to_string(i);
     }
+
+    // const instance
+    // const MyUnorderedMap<int, int> constIntMap = {{1,1}, {2,2}, {3,3}};
 
     // find()
     assert(intMap.find(10000) == intMap.end());
@@ -35,7 +37,7 @@ int main()
 
     // isEmpty()
     assert(!intMap.isEmpty());
-    myUnorderedMap<int, int> intMapOther;
+    MyUnorderedMap<int, int> intMapOther;
     assert(intMapOther.isEmpty());
     
     // print()
@@ -63,12 +65,12 @@ int main()
 
 
     // iterator and const_iterator
-    myUnorderedMap<int, int> iterator_test_map;
+    MyUnorderedMap<int, int> iterator_test_map;
     for (int i = 0; i < 10; i++)
     {
         iterator_test_map[i] = i + 50;
     }
-    myUnorderedMap<int, int> ::iterator it = iterator_test_map.begin();
+    MyUnorderedMap<int, int> ::iterator it = iterator_test_map.begin();
     for (size_t i = 0; i < 3; i++) ++it;
     cout << "it_to_begin++ 3 times: " << it->second << "\n";
 
@@ -89,7 +91,7 @@ int main()
     // performance test
     // with the current rehash implementation, the write speed
     // of 7000 elements has increased by about 2 times
-    myUnorderedMap<int, int> PerformanceTest;
+    MyUnorderedMap<int, int> PerformanceTest;
 
     time_point<high_resolution_clock> start_point, end_point;
     start_point = high_resolution_clock::now();
