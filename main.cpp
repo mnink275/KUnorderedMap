@@ -23,6 +23,7 @@ int main()
     }
 
     // find()
+    assert(intMap.find(10000) == intMap.end());
     assert(intMap.find(555)->second == 655);
     assert(doubleMap.find(13.5)->second == 113.5);
     assert(stringMap.find("key600")->second == "value600");
@@ -55,7 +56,11 @@ int main()
     // other functions
     cout << "max_bucket_count: " << doubleMap.max_bucket_count() << "\n";
     cout << "bucket_count: " << doubleMap.bucket_count() << "\n";
-    cout << "load_factor: " << doubleMap.load_factor() << "\n";
+    cout << "load_factor: " << doubleMap.loadFactor() << "\n";
+    assert(doubleMap.maxLoadFactor() == 2.0f);
+    doubleMap.maxLoadFactor(5.0f);
+    assert(doubleMap.maxLoadFactor() == 5.0f);
+
 
     // iterator and const_iterator
     myUnorderedMap<int, int> iterator_test_map;
@@ -98,7 +103,7 @@ int main()
     auto start = time_point_cast<microseconds>(start_point).time_since_epoch().count();
     auto end = time_point_cast<microseconds>(end_point).time_since_epoch().count();
     cout << "Time taken = " << (end - start) << " microseconds\n";
-    cout << PerformanceTest.load_factor() << "\n";
+    cout << PerformanceTest.loadFactor() << "\n";
 
     return 0;
 }
