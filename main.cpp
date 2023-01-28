@@ -2,8 +2,60 @@
 #include <chrono>
 #include <string>
 
-
 using namespace std::chrono;
+
+struct KekStruct
+{
+    KekStruct() : ival(0), dval(0), sval("") {}
+    KekStruct(int _ival, double _dval, string _sval)
+    {
+        ival = _ival;
+        dval = _dval;
+        sval = _sval;
+    }
+    KekStruct(KekStruct&& kek) noexcept : ival(kek.ival), dval(kek.dval), sval(kek.sval)
+    {
+        cout << "KekStruct MOVE\n";
+    }
+    KekStruct& operator=(KekStruct&& kek) noexcept
+    {
+        cout << "KekStruct MOVE operator=\n";
+        ival = move(kek.ival);
+        dval = move(kek.dval);
+        sval = move(kek.sval);
+        return *this;
+    }
+    KekStruct(const KekStruct& kek) : ival(kek.ival), dval(kek.dval), sval(kek.sval)
+    {
+        cout << "KekStruct COPY\n";
+    }
+    KekStruct& operator=(const KekStruct& kek)
+    {
+        cout << "KekStruct COPY operator=\n";
+        ival = kek.ival;
+        dval = kek.dval;
+        sval = kek.sval;
+        return *this;
+    }
+    int ival;
+    double dval;
+    string sval;
+    friend bool operator==(const KekStruct& left, const KekStruct& right)
+    {
+        return (left.ival == right.ival)
+            || (left.dval == right.dval)
+            || (left.sval == right.sval);
+    }
+};
+
+struct KekHash
+{
+    size_t operator()(const KekStruct& struct_type) const
+    {
+        return hash<int>{}(struct_type.ival);
+    }
+};
+
 
 int main()
 {
@@ -106,6 +158,20 @@ int main()
     auto end = time_point_cast<microseconds>(end_point).time_since_epoch().count();
     cout << "Time taken = " << (end - start) << " microseconds\n";
     cout << PerformanceTest.loadFactor() << "\n";
+
+    // custom data
+    MyUnorderedMap<KekStruct, int, KekHash> CustomDataMap1;
+    for (int i = 0; i < 5; i++)
+    {
+        KekStruct kek(i, i + 0.5, "GLaDOS" + to_string(i));
+        CustomDataMap1[move(kek)] = i;
+    }
+    MyUnorderedMap<int, KekStruct> CustomDataMap2;
+    for (int i = 0; i < 5; i++)
+    {
+        KekStruct kek(i, i + 0.5, "GLaDOS" + to_string(i));
+        CustomDataMap2[i] = kek;
+    }
 
     return 0;
 }
