@@ -37,15 +37,17 @@ struct KekStruct
         sval = kek.sval;
         return *this;
     }
-    int ival;
-    double dval;
-    string sval;
+    
     friend bool operator==(const KekStruct& left, const KekStruct& right)
     {
         return (left.ival == right.ival)
             || (left.dval == right.dval)
             || (left.sval == right.sval);
     }
+
+    int ival;
+    double dval;
+    string sval;
 };
 
 struct KekHash
@@ -68,13 +70,10 @@ int main()
     {
         //cout << "DEBIG" + to_string(i) << "\n";
         intMap[i] = i + 100;
-        //cout << intMap.load_factor() << " " << intMap.Size() << " " << intMap.bucket_count() << "\n";
+        //cout << intMap[i] << " " << intMap.loadFactor() << " " << intMap.Size() << " " << intMap.bucket_count() << "\n";
         doubleMap[i + 0.5] = i + 100.5;
         stringMap["key" + to_string(i)] = "value" + to_string(i);
     }
-
-    // const instance
-    // const MyUnorderedMap<int, int> constIntMap = {{1,1}, {2,2}, {3,3}};
 
     // find()
     assert(intMap.find(10000) == intMap.end());
@@ -160,17 +159,30 @@ int main()
     cout << PerformanceTest.loadFactor() << "\n";
 
     // custom data
-    MyUnorderedMap<KekStruct, int, KekHash> CustomDataMap1;
-    for (int i = 0; i < 5; i++)
+    MyUnorderedMap<KekStruct, int, KekHash> CustomStructMap1;
+    MyUnorderedMap<int, KekStruct> CustomStructMap2;
+    for (int i = 0; i < 3; i++)
     {
         KekStruct kek(i, i + 0.5, "GLaDOS" + to_string(i));
-        CustomDataMap1[move(kek)] = i;
+        CustomStructMap1[kek] = i;
     }
-    MyUnorderedMap<int, KekStruct> CustomDataMap2;
-    for (int i = 0; i < 5; i++)
+    cout << "\n";
+    for (int i = 0; i < 3; i++)
     {
         KekStruct kek(i, i + 0.5, "GLaDOS" + to_string(i));
-        CustomDataMap2[i] = kek;
+        CustomStructMap1[move(kek)] = i;
+    }
+    cout << "\n";
+    for (int i = 0; i < 3; i++)
+    {
+        KekStruct kek(i, i + 0.5, "GLaDOS" + to_string(i));
+        CustomStructMap2[i] = kek;
+    }
+    cout << "\n";
+    for (int i = 0; i < 3; i++)
+    {
+        KekStruct kek(i, i + 0.5, "GLaDOS" + to_string(i));
+        CustomStructMap2[i] = move(kek);
     }
 
     return 0;
