@@ -192,6 +192,5 @@ int main()
         CustomStructMap2[i] = move(kek);
     }
 
-    CustomStructMap1.erase(CustomStructMap1.end());
     return 0;
 }
