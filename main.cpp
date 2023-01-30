@@ -77,6 +77,13 @@ int main()
     assert(doubleMap.find(13.5)->second == 113.5);
     assert(stringMap.find("key600")->second == "value600");
 
+    // erase()
+    auto ptr = doubleMap.find(13.5);
+    doubleMap.erase(ptr);
+    assert(doubleMap.find(13.5) == doubleMap.end());
+    assert(doubleMap.erase(13.5) == 0);
+    assert(doubleMap.erase(14.5) == 1);
+
     // brute_force_find()
     assert(intMap.brute_force_find(555)->second == 655);
     assert(doubleMap.brute_force_find(13.5)->second == 113.5);
@@ -103,12 +110,14 @@ int main()
     assert(!intMapOther.isEmpty());
 
     // other functions
-    cout << "max_bucket_count: " << doubleMap.max_bucket_count() << "\n";
-    cout << "bucket_count: " << doubleMap.bucket_count() << "\n";
+    cout << "total_bucket_count: " << doubleMap.total_bucket_count() << "\n";
+    cout << "used_bucket_count: " << doubleMap.used_bucket_count() << "\n";
     cout << "load_factor: " << doubleMap.loadFactor() << "\n";
     assert(doubleMap.maxLoadFactor() == 2.0f);
     doubleMap.maxLoadFactor(5.0f);
     assert(doubleMap.maxLoadFactor() == 5.0f);
+    doubleMap.clear();
+    assert(doubleMap.isEmpty());
 
 
     // iterator and const_iterator
@@ -117,7 +126,7 @@ int main()
     {
         iterator_test_map[i] = i + 50;
     }
-    MyUnorderedMap<int, int> ::iterator it = iterator_test_map.begin();
+    MyUnorderedMap<int, int>::iterator it = iterator_test_map.begin();
     for (size_t i = 0; i < 3; i++) ++it;
     assert(it->second == 53);
 
@@ -183,5 +192,6 @@ int main()
         CustomStructMap2[i] = move(kek);
     }
 
+    CustomStructMap1.erase(CustomStructMap1.end());
     return 0;
 }
