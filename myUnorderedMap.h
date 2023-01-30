@@ -43,7 +43,13 @@ public:
         using reference = ListNode&;
 
     public:
+        friend class CommonIterator<true>;
+        friend class MyUnorderedMap;
+
         explicit CommonIterator(pointer _ptr) : ptr(_ptr) {};
+
+        CommonIterator(const CommonIterator<false>& non_const_it)
+            : ptr(non_const_it.ptr) {}
 
         std::conditional_t<IsConst, const pair<const Key, T>&, pair<const Key, T>&> operator*()
         {
@@ -76,10 +82,10 @@ public:
         {
             return left.ptr == right.ptr;
         }
-
     private:
         std::conditional_t<IsConst, const pointer, pointer> ptr;
     };
+
 public:
     using iterator = CommonIterator<false>;
     using const_iterator = CommonIterator<true>;
@@ -101,6 +107,11 @@ public:
     bool isEmpty() const; // O(1)
     //max_size() const;
 
+    // Modifiers
+    void clear();
+    iterator erase(const_iterator pos);
+    size_t erase(const Key& key);
+
     // Lookup:
     pair<const Key, T>* brute_force_find(const Key& key);
     iterator find(const Key& key);
@@ -110,8 +121,8 @@ public:
     void print() const; // O(n)
 
     // Bucket interface:
-    size_t bucket_count() const; // O(1)
-    size_t max_bucket_count() const; // O(1)
+    size_t used_bucket_count() const; // O(1)
+    size_t total_bucket_count() const; // O(1)
 
     // Hash policy:
     float loadFactor() const; // O(1)
@@ -151,14 +162,14 @@ private:
     shared_ptr<ListNode> m_rbegin;
     shared_ptr<ListNode> m_rend;
     float max_load_factor;
-    size_t bucket_count_val;
+    size_t m_used_bucket_count;
     bool is_empty;
 };
 
 template<class Key, class T, class Hash>
 MyUnorderedMap<Key, T, Hash>::MyUnorderedMap()
     : capacity(239), size(0), m_begin(nullptr), m_end(nullptr), m_rbegin(nullptr),
-    m_rend(nullptr), max_load_factor(2.0f), bucket_count_val(0), is_empty(true)
+    m_rend(nullptr), max_load_factor(2.0f), m_used_bucket_count(0), is_empty(true)
 {
     //cout << "Constructor!" << "\n";
     hash_set.resize(capacity, nullptr);
@@ -262,6 +273,72 @@ bool MyUnorderedMap<Key, T, Hash>::isEmpty() const
 }
 
 template<class Key, class T, class Hash>
+void MyUnorderedMap<Key, T, Hash>::clear()
+{
+    if (size == 0)
+    {
+        return;
+    }
+
+    nodes_unbinding(); // O(n)
+    m_end = nullptr;
+    is_empty = true;
+    size = 0;
+    m_used_bucket_count = 0;
+    hash_set.clear(); // O(N)
+}
+
+template<class Key, class T, class Hash>
+typename MyUnorderedMap<Key, T, Hash>
+::iterator MyUnorderedMap<Key, T, Hash>::erase(const const_iterator pos)
+{
+    if (pos == cend())
+    {
+        throw std::runtime_error("Read access violation");
+    }
+
+    const auto& pos_ptr = pos.ptr;
+    size_t hash = pos_ptr->hash_val;
+    if (hash_set[hash] != nullptr)
+    {
+        if (pos_ptr->next->hash_val == hash)
+        {
+            hash_set[hash] = pos_ptr->next;
+        }
+
+        hash_set[hash] = nullptr;
+    }
+
+    auto prev = pos_ptr->prev;
+    auto next = pos_ptr->next;
+    if (prev != m_end)
+    {
+        prev->next = prev->next;
+    }
+    if (next != m_end)
+    {
+        next->prev = pos_ptr->prev;
+    }
+    
+    return iterator(next.get());
+}
+
+template<class Key, class T, class Hash>
+size_t MyUnorderedMap<Key, T, Hash>::erase(const Key& key)
+{
+    auto target_it = find(key);
+    if (target_it == end())
+    {
+        return 0;
+    }
+    else
+    {
+        erase(target_it);
+        return 1;
+    }
+}
+
+template<class Key, class T, class Hash>
 pair<const Key, T>* MyUnorderedMap<Key, T, Hash>::brute_force_find(const Key& key)
 {
     if (m_begin == nullptr) cout << "Find error! Map is empty!" << endl;
@@ -296,21 +373,21 @@ typename MyUnorderedMap<Key, T, Hash>
 }
 
 template<class Key, class T, class Hash>
-size_t MyUnorderedMap<Key, T, Hash>::max_bucket_count() const
+size_t MyUnorderedMap<Key, T, Hash>::total_bucket_count() const
 {
     return capacity;
 }
 
 template<class Key, class T, class Hash>
-size_t MyUnorderedMap<Key, T, Hash>::bucket_count() const
+size_t MyUnorderedMap<Key, T, Hash>::used_bucket_count() const
 {
-    return bucket_count_val;
+    return m_used_bucket_count;
 }
 
 template<class Key, class T, class Hash>
 float MyUnorderedMap<Key, T, Hash>::loadFactor() const
 {
-    return static_cast<float>(Size()) / bucket_count();
+    return static_cast<float>(Size()) / used_bucket_count();
 }
 
 template<class Key, class T, class Hash>
@@ -332,7 +409,7 @@ void MyUnorderedMap<Key, T, Hash>::rehash(size_t new_capacity)
     hash_set.resize(new_capacity, nullptr); // O(new_capacity - old_capacity)
 
     capacity = new_capacity;
-    bucket_count_val = 0;
+    m_used_bucket_count = 0;
 
     // let the "begin node" to be the first one in the expanded hash_set
     size_t curr_hash = hash_func(m_begin->data_pair.first); // O(1) ??
@@ -349,7 +426,7 @@ void MyUnorderedMap<Key, T, Hash>::rehash(size_t new_capacity)
         it->hash_val = curr_hash;
         if (hash_set[curr_hash] == nullptr)
         {
-            bucket_count_val++;
+            m_used_bucket_count++;
             hash_set[curr_hash] = it;
             m_rbegin->next = it;
             it->prev = m_rbegin;
@@ -446,7 +523,7 @@ void MyUnorderedMap<Key, T, Hash>::copy_handler(const MyUnorderedMap& other_map)
     capacity = other_map.capacity;
     is_empty = other_map.is_empty;
     max_load_factor = other_map.max_load_factor;
-    bucket_count_val = other_map.bucket_count_val;
+    m_used_bucket_count = other_map.m_used_bucket_count;
     auto new_node = make_shared<ListNode>(*other_map.m_begin);
     m_begin = new_node;
     hash_set[new_node->hash_val] = new_node;
@@ -479,7 +556,7 @@ void MyUnorderedMap<Key, T, Hash>::move_handler(MyUnorderedMap&& other_map)
     capacity = exchange(other_map.capacity, 0);
     is_empty = exchange(other_map.is_empty, true);
     max_load_factor = exchange(other_map.max_load_factor, 0);
-    bucket_count_val = exchange(other_map.bucket_count_val, 0);
+    m_used_bucket_count = exchange(other_map.m_used_bucket_count, 0);
     m_begin = exchange(other_map.m_begin, nullptr);
     m_end = exchange(other_map.m_end, nullptr);
     m_rbegin = exchange(other_map.m_rbegin, nullptr);
@@ -530,7 +607,7 @@ CommonIt MyUnorderedMap<Key, T, Hash>::find_helper(const Key& key) const
     }
     else
     {
-        // TODO: bad if the Key is huge class cos
+        // TODO: bad if the Key is a huge class cos
         // copy ctor is invoked here (below)
         Key target = it->data_pair.first;
         while (key != target)
@@ -569,7 +646,7 @@ T& MyUnorderedMap<Key, T, Hash>::emplace(SomeKey&& key)
         auto node = make_shared<ListNode>(
             make_pair<SomeKey, T>(std::forward<SomeKey>(key), {}),
             hash_val);
-        bucket_count_val++;
+        m_used_bucket_count++;
         if (size == 1)
         {
             hash_set[hash_val] = node;
