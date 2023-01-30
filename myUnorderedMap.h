@@ -37,7 +37,7 @@ private:
             : hash_val(_hash_val), prev(nullptr), next(nullptr),
               data_pair(move(_key), move(def_val)) {}
         };*/
-        ListNode(std::pair<Key, T>& pr, size_t _hash_val)
+        ListNode(std::pair<Key, T>&& pr, size_t _hash_val)
             : hash_val(_hash_val), prev(nullptr), next(nullptr),
             data_pair(std::move(pr)) {}
     };
@@ -577,7 +577,6 @@ T& MyUnorderedMap<Key, T, Hash>::emplace(SomeKey&& key)
 
     const auto& key_val = key;
     size_t hash_val = hash_func(key_val);
-    auto new_pair_data = make_pair<SomeKey, T>(std::forward<SomeKey>(key), {});
     size++;
 
     if (hash_set[hash_val] == nullptr)
@@ -585,7 +584,9 @@ T& MyUnorderedMap<Key, T, Hash>::emplace(SomeKey&& key)
         // if node with corresponding hash_val doesn't exist,
         // create new node, connect it to the main linked list and
         // put it's pointer to the hash_set.
-        auto node = make_shared<ListNode>(new_pair_data, hash_val);
+        auto node = make_shared<ListNode>(
+            make_pair<SomeKey, T>(std::forward<SomeKey>(key), {}),
+            hash_val);
         bucket_count_val++;
         if (size == 1)
         {
@@ -626,7 +627,9 @@ T& MyUnorderedMap<Key, T, Hash>::emplace(SomeKey&& key)
         // if node with corresponding key doesn't exist,
         // create new node and add it to the ending of 
         // the corresponding bucket.
-        auto node = make_shared<ListNode>(new_pair_data, hash_val);
+        auto node = make_shared<ListNode>(
+            make_pair<SomeKey, T>(std::forward<SomeKey>(key), {}),
+            hash_val);
         prev_it->next = node;
         node->prev = prev_it;
         if (it != m_end)
