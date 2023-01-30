@@ -7,12 +7,8 @@ using namespace std::chrono;
 struct KekStruct
 {
     KekStruct() : ival(0), dval(0), sval("") {}
-    KekStruct(int _ival, double _dval, string _sval)
-    {
-        ival = _ival;
-        dval = _dval;
-        sval = _sval;
-    }
+    KekStruct(int _ival, double _dval, const string& _sval)
+        : ival(_ival), dval(_dval), sval(_sval) {}
     KekStruct(KekStruct&& kek) noexcept : ival(kek.ival), dval(kek.dval), sval(kek.sval)
     {
         cout << "KekStruct MOVE\n";
@@ -123,12 +119,12 @@ int main()
     }
     MyUnorderedMap<int, int> ::iterator it = iterator_test_map.begin();
     for (size_t i = 0; i < 3; i++) ++it;
-    cout << "it_to_begin++ 3 times: " << it->second << "\n";
+    assert(it->second == 53);
 
     for (size_t i = 0; i < 3; i++) --it;
-    cout << "it_to_begin-- 3 times: " << it->second << "\n";
+    assert(it->second == 50);
 
-    for (auto& pr : iterator_test_map)
+    for (const auto& pr : iterator_test_map)
     {
         cout << pr.second << " ";
     }
@@ -138,10 +134,12 @@ int main()
     {
         cout << pr.second << " ";
     }
+    cout << "\n";
 
     // performance test
     // with the current rehash implementation, the write speed
     // of 7000 elements has increased by about 2 times
+    // (compared to assignment without rehash() calls)
     MyUnorderedMap<int, int> PerformanceTest;
 
     time_point<high_resolution_clock> start_point, end_point;
@@ -156,7 +154,7 @@ int main()
     auto start = time_point_cast<microseconds>(start_point).time_since_epoch().count();
     auto end = time_point_cast<microseconds>(end_point).time_since_epoch().count();
     cout << "Time taken = " << (end - start) << " microseconds\n";
-    cout << PerformanceTest.loadFactor() << "\n";
+    assert(PerformanceTest.loadFactor() <= 2);
 
     // custom data
     MyUnorderedMap<KekStruct, int, KekHash> CustomStructMap1;

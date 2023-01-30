@@ -22,21 +22,9 @@ private:
         shared_ptr<ListNode> next;
 
         ListNode() {} // doesn't have fields initialization, cos it is used
-                      // only for fake end node creating (inside the create_end_fake_node()).
-        /*ListNode(const Key& _key, size_t _hash_val)
-            : hash_val(_hash_val), prev(nullptr), next(nullptr), data_pair(_key, {}) {}
-        ListNode(const Key& _key, size_t _hash_val, ListNode* _next)
-            : hash_val(_hash_val), data_pair(_key, {}), next(_next) {}*/
         explicit ListNode(ListNode& _node)
             : data_pair(_node.data_pair.first, _node.data_pair.second),
             hash_val(_node.hash_val), prev(_node.prev), next(_node.next) {};
-        /*ListNode(const Key& _key, const T& def_val, size_t _hash_val)
-            : hash_val(_hash_val), prev(nullptr), next(nullptr),
-            data_pair(_key, move(def_val)) {}
-        ListNode(Key&& _key, T&& def_val, size_t _hash_val) noexcept
-            : hash_val(_hash_val), prev(nullptr), next(nullptr),
-              data_pair(move(_key), move(def_val)) {}
-        };*/
         ListNode(std::pair<Key, T>&& pr, size_t _hash_val)
             : hash_val(_hash_val), prev(nullptr), next(nullptr),
             data_pair(std::move(pr)) {}
@@ -169,9 +157,8 @@ private:
 
 template<class Key, class T, class Hash>
 MyUnorderedMap<Key, T, Hash>::MyUnorderedMap()
-    : capacity(239), m_begin(nullptr), m_rbegin(nullptr), m_end(nullptr),
-    m_rend(nullptr), max_load_factor(2.0f), size(0), bucket_count_val(0),
-    is_empty(true)
+    : capacity(239), size(0), m_begin(nullptr), m_end(nullptr), m_rbegin(nullptr),
+    m_rend(nullptr), max_load_factor(2.0f), bucket_count_val(0), is_empty(true)
 {
     //cout << "Constructor!" << "\n";
     hash_set.resize(capacity, nullptr);
@@ -189,9 +176,6 @@ MyUnorderedMap<Key, T, Hash>::~MyUnorderedMap()
 
 template<class Key, class T, class Hash>
 MyUnorderedMap<Key, T, Hash>::MyUnorderedMap(const MyUnorderedMap& other_map)
-    : capacity(other_map.capacity), m_begin(nullptr), m_rbegin(nullptr), m_end(nullptr),
-    m_rend(nullptr), max_load_factor(2.0f), size(0), bucket_count_val(0),
-    is_empty(other_map.is_empty)
 {
     cout << "Copy operator()" << "\n";
     if (this == &other_map) return;
@@ -213,9 +197,6 @@ MyUnorderedMap<Key, T>& MyUnorderedMap<Key, T, Hash>::operator=(const MyUnordere
 
 template<class Key, class T, class Hash>
 MyUnorderedMap<Key, T, Hash>::MyUnorderedMap(MyUnorderedMap&& other_map) noexcept
-    : capacity(other_map.capacity), m_begin(nullptr), m_rbegin(nullptr), m_end(nullptr),
-    m_rend(nullptr), max_load_factor(0.0f), size(0), bucket_count_val(0),
-    is_empty(other_map.is_empty)
 {
     cout << "Move operator()" << "\n";
     if (this == &other_map) return;
@@ -240,6 +221,7 @@ MyUnorderedMap<Key, T, Hash>
 {
     // move through list
     // ???
+    throw std::runtime_error("not implemented");
 }
 
 template<class Key, class T, class Hash>
@@ -517,7 +499,7 @@ void MyUnorderedMap<Key, T, Hash>::create_end_fake_node()
 template<class Key, class T, class Hash>
 void MyUnorderedMap<Key, T, Hash>::nodes_unbinding()
 {
-    // ListNode nodes unbinding, before ~Destructor and MoveCtor
+    // ListNode nodes unbinding before ~Destructor and MoveCtor
     // to prevent memory leaks due to nodes looped binding. 
     auto prev_it = m_begin;
     auto it = prev_it->next;
