@@ -6,4 +6,15 @@
   ```shell
   g++ *.cpp -std=c++14 -Wall -o ./a.out && valgrind ./a.out --leak-check=yes --track-origins=yes
   ```
-- Debugging was performed in Visual Studio 2022.
+- Debugging was performed in Visual Studio 17 2022.
+
+- Building for Visual Studio 17 2022:
+  ```shell
+  git clone https://github.com/mnink275/MyUnorderedMap
+  cd MyUnorderedMap
+  mkdir build
+  cd build
+  cmake ..
+  cmake --build .
+  cmake --open .
+  ```
