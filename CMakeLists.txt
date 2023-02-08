@@ -8,12 +8,13 @@ set(CMAKE_CXX_STANDARD 17)
 
 # target_include_directories(header_lib PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
-add_executable(UMap_make main.cpp)
+add_executable(UnorderedMap main.cpp)
 
 if (CMAKE_GENERATOR MATCHES "Visual Studio 17 2022")
-    set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT UMap_make)
+    set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT UnorderedMap)
 endif()
 
-target_include_directories(UMap_make PRIVATE ${PROJECT_SOURCE_DIR}/include)
+target_include_directories(UnorderedMap PRIVATE ${PROJECT_SOURCE_DIR}/include)
 
-# target_link_libraries(UMap_make header_lib)
+target_compile_options(UnorderedMap PRIVATE "-Wall")
+# target_link_libraries(UnorderedMap header_lib)
