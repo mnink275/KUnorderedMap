@@ -8,6 +8,7 @@
 #include <cmath>
 #include <utility>
 #include "ListNode.h"
+#include "Iterator.h"
 
 template<class Key, class T, class Hash = std::hash<Key>>
 class MyUnorderedMap
@@ -16,65 +17,8 @@ private:
 	using ListNode = ListNodeStructer<Key, T>;
 
 public:
-    // container's iterator
-    template<bool IsConst>
-    class CommonIterator
-    {
-        // iterator tags
-        using iterator_category = std::bidirectional_iterator_tag;
-        using difference_type = std::ptrdiff_t;
-        using value_type = ListNode;
-        using pointer = ListNode*;
-        using reference = ListNode&;
-
-    public:
-        friend class CommonIterator<true>;
-        friend class MyUnorderedMap;
-
-        explicit CommonIterator(pointer _ptr) : ptr(_ptr) {};
-
-        CommonIterator(const CommonIterator<false>& non_const_it)
-            : ptr(non_const_it.ptr) {}
-
-        std::conditional_t<IsConst,
-            const std::pair<const Key, T>&, std::pair<const Key, T>&> operator*()
-        {
-            return ptr->data_pair;
-        }
-
-        CommonIterator& operator++()
-        {
-            ptr = (ptr->next).get();
-            return *this;
-        }
-
-        CommonIterator& operator--()
-        {
-            ptr = (ptr->prev).get();
-            return *this;
-        }
-
-        std::conditional_t<IsConst, const std::pair<const Key, T>*, std::pair<const Key, T>*> operator->()
-        {
-            return &(ptr->data_pair);
-        }
-
-        friend bool operator!=(const CommonIterator& left, const CommonIterator& right)
-        {
-            return left.ptr != right.ptr;
-        }
-
-        friend bool operator==(const CommonIterator& left, const CommonIterator& right)
-        {
-            return left.ptr == right.ptr;
-        }
-    private:
-        std::conditional_t<IsConst, const pointer, pointer> ptr;
-    };
-
-public:
-    using iterator = CommonIterator<false>;
-    using const_iterator = CommonIterator<true>;
+    using iterator = CommonIterator<Key, T, false>;
+    using const_iterator = CommonIterator<Key, T, true>;
 
 public:
     MyUnorderedMap();
