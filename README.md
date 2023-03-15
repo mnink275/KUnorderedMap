@@ -1,4 +1,4 @@
-# MyUnorderedMap
+# Unordered Map
 
 - My implementation of the unordered_map. It was created for learning, practicing and better understanding of C++.
 
