@@ -7,26 +7,13 @@
 #include <memory>
 #include <cmath>
 #include <utility>
+#include "ListNode.h"
 
 template<class Key, class T, class Hash = std::hash<Key>>
 class MyUnorderedMap
 {
 private:
-    // bidirectional list
-    struct ListNode {
-        std::pair<const Key, T> data_pair;
-        size_t hash_val;
-        std::shared_ptr<ListNode> prev;
-        std::shared_ptr<ListNode> next;
-
-        ListNode() {} // doesn't have fields initialization, cos it is used
-        explicit ListNode(ListNode& _node)
-            : data_pair(_node.data_pair.first, _node.data_pair.second),
-            hash_val(_node.hash_val), prev(_node.prev), next(_node.next) {};
-        ListNode(std::pair<Key, T>&& pr, size_t _hash_val)
-            : data_pair(std::move(pr)),
-            hash_val(_hash_val), prev(nullptr), next(nullptr) {}
-    };
+	using ListNode = ListNodeStructer<Key, T>;
 
 public:
     // container's iterator
