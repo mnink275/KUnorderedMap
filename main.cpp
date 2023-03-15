@@ -7,27 +7,27 @@ using namespace std::chrono;
 struct KekStruct
 {
     KekStruct() : ival(0), dval(0), sval("") {}
-    KekStruct(int _ival, double _dval, const string& _sval)
+    KekStruct(int _ival, double _dval, const std::string& _sval)
         : ival(_ival), dval(_dval), sval(_sval) {}
     KekStruct(KekStruct&& kek) noexcept : ival(kek.ival), dval(kek.dval), sval(kek.sval)
     {
-        cout << "KekStruct MOVE\n";
+        std::cout << "KekStruct MOVE\n";
     }
     KekStruct& operator=(KekStruct&& kek) noexcept
     {
-        cout << "KekStruct MOVE operator=\n";
-        ival = move(kek.ival);
-        dval = move(kek.dval);
-        sval = move(kek.sval);
+        std::cout << "KekStruct MOVE operator=\n";
+        ival = std::move(kek.ival);
+        dval = std::move(kek.dval);
+        sval = std::move(kek.sval);
         return *this;
     }
     KekStruct(const KekStruct& kek) : ival(kek.ival), dval(kek.dval), sval(kek.sval)
     {
-        cout << "KekStruct COPY\n";
+        std::cout << "KekStruct COPY\n";
     }
     KekStruct& operator=(const KekStruct& kek)
     {
-        cout << "KekStruct COPY operator=\n";
+        std::cout << "KekStruct COPY operator=\n";
         ival = kek.ival;
         dval = kek.dval;
         sval = kek.sval;
@@ -43,14 +43,14 @@ struct KekStruct
 
     int ival;
     double dval;
-    string sval;
+    std::string sval;
 };
 
 struct KekHash
 {
     size_t operator()(const KekStruct& struct_type) const
     {
-        return hash<int>{}(struct_type.ival);
+        return std::hash<int>{}(struct_type.ival);
     }
 };
 
@@ -59,7 +59,7 @@ int main()
 {
     MyUnorderedMap<int, int> intMap;
     MyUnorderedMap<double, double> doubleMap;
-    MyUnorderedMap<string, string> stringMap;
+    MyUnorderedMap<std::string, std::string> stringMap;
 
     // operator[]
     for (int i = 0; i < 700; i++)
@@ -68,7 +68,7 @@ int main()
         intMap[i] = i + 100;
         //cout << intMap[i] << " " << intMap.loadFactor() << " " << intMap.Size() << " " << intMap.bucket_count() << "\n";
         doubleMap[i + 0.5] = i + 100.5;
-        stringMap["key" + to_string(i)] = "value" + to_string(i);
+        stringMap["key" + std::to_string(i)] = "value" + std::to_string(i);
     }
 
     // find()
@@ -110,9 +110,9 @@ int main()
     assert(!intMapOther.isEmpty());
 
     // other functions
-    cout << "total_bucket_count: " << doubleMap.total_bucket_count() << "\n";
-    cout << "used_bucket_count: " << doubleMap.used_bucket_count() << "\n";
-    cout << "load_factor: " << doubleMap.loadFactor() << "\n";
+    std::cout << "total_bucket_count: " << doubleMap.total_bucket_count() << "\n";
+    std::cout << "used_bucket_count: " << doubleMap.used_bucket_count() << "\n";
+    std::cout << "load_factor: " << doubleMap.loadFactor() << "\n";
     assert(doubleMap.maxLoadFactor() == 2.0f);
     doubleMap.maxLoadFactor(5.0f);
     assert(doubleMap.maxLoadFactor() == 5.0f);
@@ -135,15 +135,15 @@ int main()
 
     for (const auto& pr : iterator_test_map)
     {
-        cout << pr.second << " ";
+        std::cout << pr.second << " ";
     }
-    cout << "\n";
+    std::cout << "\n";
     auto const_it = iterator_test_map.cbegin();
     for (const auto& pr : iterator_test_map)
     {
-        cout << pr.second << " ";
+        std::cout << pr.second << " ";
     }
-    cout << "\n";
+    std::cout << "\n";
 
     // performance test
     // with the current rehash implementation, the write speed
@@ -162,7 +162,7 @@ int main()
     end_point = high_resolution_clock::now();
     auto start = time_point_cast<microseconds>(start_point).time_since_epoch().count();
     auto end = time_point_cast<microseconds>(end_point).time_since_epoch().count();
-    cout << "Time taken = " << (end - start) << " microseconds\n";
+    std::cout << "Time taken = " << (end - start) << " microseconds\n";
     assert(PerformanceTest.loadFactor() <= 2);
 
     // custom data
@@ -170,26 +170,26 @@ int main()
     MyUnorderedMap<int, KekStruct> CustomStructMap2;
     for (int i = 0; i < 3; i++)
     {
-        KekStruct kek(i, i + 0.5, "GLaDOS" + to_string(i));
+        KekStruct kek(i, i + 0.5, "GLaDOS" + std::to_string(i));
         CustomStructMap1[kek] = i;
     }
-    cout << "\n";
+    std::cout << "\n";
     for (int i = 0; i < 3; i++)
     {
-        KekStruct kek(i, i + 0.5, "GLaDOS" + to_string(i));
-        CustomStructMap1[move(kek)] = i;
+        KekStruct kek(i, i + 0.5, "GLaDOS" + std::to_string(i));
+        CustomStructMap1[std::move(kek)] = i;
     }
-    cout << "\n";
+    std::cout << "\n";
     for (int i = 0; i < 3; i++)
     {
-        KekStruct kek(i, i + 0.5, "GLaDOS" + to_string(i));
+        KekStruct kek(i, i + 0.5, "GLaDOS" + std::to_string(i));
         CustomStructMap2[i] = kek;
     }
-    cout << "\n";
+    std::cout << "\n";
     for (int i = 0; i < 3; i++)
     {
-        KekStruct kek(i, i + 0.5, "GLaDOS" + to_string(i));
-        CustomStructMap2[i] = move(kek);
+        KekStruct kek(i, i + 0.5, "GLaDOS" + std::to_string(i));
+        CustomStructMap2[i] = std::move(kek);
     }
 
     return 0;
