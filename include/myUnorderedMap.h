@@ -14,11 +14,11 @@ template<class Key, class T, class Hash = std::hash<Key>>
 class MyUnorderedMap
 {
 private:
-	using ListNode = ListNodeStructer<Key, T>;
+    using ListNode = ListNodeStructer<Key, T>;
 
 public:
-    using iterator = CommonIterator<Key, T, false>;
-    using const_iterator = CommonIterator<Key, T, true>;
+    using iterator = CommonIterator<Key, T, false, Hash>;
+    using const_iterator = CommonIterator<Key, T, true, Hash>;
 
 public:
     MyUnorderedMap();
@@ -171,20 +171,20 @@ T& MyUnorderedMap<Key, T, Hash>::operator[](const Key& key)
     return emplace(key);
 }
 
- template<class Key, class T, class Hash>
- T& MyUnorderedMap<Key, T, Hash>::operator[](Key&& key)
- {
-     return emplace(std::move(key));
- }
+template<class Key, class T, class Hash>
+T& MyUnorderedMap<Key, T, Hash>::operator[](Key&& key)
+{
+    return emplace(std::move(key));
+}
 
 template<class Key, class T, class Hash>
 void MyUnorderedMap<Key, T, Hash>::print() const
 {
-    if (m_begin == nullptr) cout << "Called map is empty!" << "\n";
-    shared_ptr<ListNode> it = m_begin;
+    if (m_begin == nullptr) std::cout << "Called map is empty!" << "\n";
+    std::shared_ptr<ListNode> it = m_begin;
     while (it != m_end)
     {
-        cout << it->data_pair.second << " ";
+        std::cout << it->data_pair.second << " ";
         it = it->next;
     }
     std::cout << "\n";
@@ -249,7 +249,7 @@ typename MyUnorderedMap<Key, T, Hash>
     {
         next->prev = pos_ptr->prev;
     }
-    
+
     return iterator(next.get());
 }
 

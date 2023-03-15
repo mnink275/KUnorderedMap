@@ -5,16 +5,17 @@
 #include <type_traits>
 #include "ListNode.h"
 
-template<class Key, class T, class Hash = std::hash<Key>>
+// Forward declaration
+template<class Key, class T, class Hash>
 class MyUnorderedMap;
 
-// container's iterator
-template<class Key, class T, bool IsConst>
+// UnorderedMap's iterator
+template<class Key, class T, bool IsConst, class Hash>
 class CommonIterator
 {
 public:
     using ListNode = ListNodeStructer<Key, T>;
-    
+
     // iterator tags
     using iterator_category = std::bidirectional_iterator_tag;
     using difference_type = std::ptrdiff_t;
@@ -23,12 +24,12 @@ public:
     using reference = ListNode&;
 
 public:
-    friend class CommonIterator<Key, T, true>;
-    friend class MyUnorderedMap<Key, T>;
+    friend class CommonIterator<Key, T, true, Hash>;
+    friend class MyUnorderedMap<Key, T, Hash>;
 
     explicit CommonIterator(pointer _ptr) : ptr(_ptr) {};
 
-    CommonIterator(const CommonIterator<Key, T, false>& non_const_it)
+    CommonIterator(const CommonIterator<Key, T, false, Hash>& non_const_it)
         : ptr(non_const_it.ptr) {}
 
     std::conditional_t<IsConst,
