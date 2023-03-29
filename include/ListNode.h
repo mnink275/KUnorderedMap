@@ -3,7 +3,7 @@
 #include <vector>
 #include <memory>
 
-// bidirectional list
+// Bidirectional List
 template<class Key, class T>
 struct ListNodeStructer {
     std::pair<const Key, T> data_pair;
@@ -12,10 +12,10 @@ struct ListNodeStructer {
     std::shared_ptr<ListNodeStructer> next;
 
     ListNodeStructer() {}
-    explicit ListNodeStructer(ListNodeStructer& _node)
-        : data_pair(_node.data_pair.first, _node.data_pair.second),
-        hash_val(_node.hash_val), prev(_node.prev), next(_node.next) {};
-    ListNodeStructer(std::pair<Key, T>&& pr, size_t _hash_val)
-        : data_pair(std::move(pr)),
-        hash_val(_hash_val), prev(nullptr), next(nullptr) {}
+    explicit ListNodeStructer(ListNodeStructer& node_)
+        : data_pair(node_.data_pair.first, node_.data_pair.second),
+        hash_val(node_.hash_val), prev(node_.prev), next(node_.next) {};
+    ListNodeStructer(std::pair<Key, T>&& pr, size_t hash_val_)
+        : data_pair(std::move(pr)), hash_val(hash_val_), prev(nullptr),
+        next(nullptr) {}
 };
