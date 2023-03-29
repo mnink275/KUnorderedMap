@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.19)
 
-project(MyUnorderedMap LANGUAGES CXX)
+project(KUnorderedMap LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 
