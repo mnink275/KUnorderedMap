@@ -5,60 +5,66 @@
 #include <type_traits>
 #include "ListNode.h"
 
-// Forward declaration
-template<class Key, class T, class Hash>
-class KUnorderedMap;
+namespace ink {
 
-// UnorderedMap's iterator
-template<class Key, class T, bool IsConst, class Hash>
-class CommonIterator {
-public:
-    using ListNode = ListNodeStructer<Key, T>;
+    // Forward declaration
+    template<class Key, class T, class Hash>
+    class KUnorderedMap;
 
-    // iterator tags
-    using iterator_category = std::bidirectional_iterator_tag;
-    using difference_type = std::ptrdiff_t;
-    using value_type = ListNode;
-    using pointer = ListNode*;
-    using reference = ListNode&;
+    // UnorderedMap's iterator
+    template<class Key, class T, bool IsConst, class Hash>
+    class CommonIterator {
+    public:
+        using ListNode = ListNodeStructer<Key, T>;
 
-public:
-    friend class CommonIterator<Key, T, true, Hash>;
-    friend class KUnorderedMap<Key, T, Hash>;
+        // iterator tags
+        using iterator_category = std::bidirectional_iterator_tag;
+        using difference_type = std::ptrdiff_t;
+        using value_type = ListNode;
+        using pointer = ListNode*;
+        using reference = ListNode&;
 
-    explicit CommonIterator(pointer ptr_) : ptr(ptr_) {};
+    public:
+        friend class CommonIterator<Key, T, true, Hash>;
+        friend class KUnorderedMap<Key, T, Hash>;
 
-    CommonIterator(const CommonIterator<Key, T, false, Hash>& non_const_it)
-        : ptr(non_const_it.ptr) {}
+        explicit CommonIterator(pointer ptr_) : ptr(ptr_) {};
 
-    std::conditional_t<IsConst, const std::pair<const Key, T>&,
-        std::pair<const Key, T>&> operator*() {
-        return ptr->data_pair;
-    }
+        CommonIterator(const CommonIterator<Key, T, false, Hash>& non_const_it)
+            : ptr(non_const_it.ptr) {}
 
-    CommonIterator& operator++() {
-        ptr = (ptr->next).get();
-        return *this;
-    }
+        std::conditional_t<IsConst, const std::pair<const Key, T>&,
+            std::pair<const Key, T>&> operator*() {
+            return ptr->data_pair;
+        }
 
-    CommonIterator& operator--() {
-        ptr = (ptr->prev).get();
-        return *this;
-    }
+        CommonIterator& operator++() {
+            ptr = (ptr->next).get();
+            return *this;
+        }
 
-    std::conditional_t<IsConst, const std::pair<const Key, T>*,
-        std::pair<const Key, T>*> operator->() {
-        return &(ptr->data_pair);
-    }
+        CommonIterator& operator--() {
+            ptr = (ptr->prev).get();
+            return *this;
+        }
 
-    friend bool operator!=(const CommonIterator& left, const CommonIterator& right) {
-        return left.ptr != right.ptr;
-    }
+        std::conditional_t<IsConst, const std::pair<const Key, T>*,
+            std::pair<const Key, T>*> operator->() {
+            return &(ptr->data_pair);
+        }
 
-    friend bool operator==(const CommonIterator& left, const CommonIterator& right) {
-        return left.ptr == right.ptr;
-    }
+        friend bool operator!=(const CommonIterator& left,
+                               const CommonIterator& right) {
+            return left.ptr != right.ptr;
+        }
 
-private:
-    std::conditional_t<IsConst, const pointer, pointer> ptr;
-};
+        friend bool operator==(const CommonIterator& left,
+                               const CommonIterator& right) {
+            return left.ptr == right.ptr;
+        }
+
+    private:
+        std::conditional_t<IsConst, const pointer, pointer> ptr;
+    };
+
+}
