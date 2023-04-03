@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.19)
 
-project(KUnorderedMap LANGUAGES CXX)
+project(
+    KUnorderedMap
+    VERSION 1.0
+    DESCRIPTION "Unordered hash map"
+    LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 
