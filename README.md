@@ -11,8 +11,8 @@
 ## Building
 - Visual Studio 17 2022:
   ```shell
-  git clone https://github.com/mnink275/MyUnorderedMap
-  cd MyUnorderedMap
+  git clone https://github.com/mnink275/KUnorderedMap
+  cd KUnorderedMap
   cmake -S . -B build -G "Visual Studio 17 2022"
   cmake --build build
   cmake --open build
@@ -20,8 +20,8 @@
 
 - Linux:
   ```shell
-  git clone https://github.com/mnink275/MyUnorderedMap
-  cd MyUnorderedMap
+  git clone https://github.com/mnink275/KUnorderedMap
+  cd KUnorderedMap
   cmake -S . -B build -G "Unix Makefiles"
   cmake --build build
   ./build/UnorderedMap
