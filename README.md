@@ -21,8 +21,8 @@
 - Linux:
   ```shell
   git clone https://github.com/mnink275/KUnorderedMap
-  cd KUnorderedMap
+  cd KUnorderedMap/
   cmake -S . -B build -G "Unix Makefiles"
   cmake --build build
-  ./build/UnorderedMap
+  ./build/KUnorderedMap/
   ```
