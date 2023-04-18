@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.19)
+cmake_minimum_required(VERSION 3.15)
 
 project(
     KUnorderedMap
@@ -6,19 +6,25 @@ project(
     DESCRIPTION "Unordered hash map"
     LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 17)
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+    set(CMAKE_CXX_STANDARD 17)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
 
-#add_library(header_lib STATIC ${PROJECT_SOURCE_DIR}/src/somecpp.cpp)
+    enable_testing()
 
-# target_include_directories(header_lib PUBLIC ${PROJECT_SOURCE_DIR}/include)
-
-add_executable(KUnorderedMap main.cpp)
-
-if (CMAKE_GENERATOR MATCHES "Visual Studio 17 2022")
-    set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT KUnorderedMap)
+    if(CMAKE_GENERATOR MATCHES "Visual Studio 17 2022")
+        set_property(
+            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            PROPERTY VS_STARTUP_PROJECT KUnorderedMap)
+    endif()
 endif()
 
-target_include_directories(KUnorderedMap PRIVATE ${PROJECT_SOURCE_DIR}/include)
+include(FetchContent)
 
+add_executable(KUnorderedMap main.cpp)
+target_include_directories(KUnorderedMap PRIVATE ${PROJECT_SOURCE_DIR}/include)
 target_compile_options(KUnorderedMap PRIVATE "-Wall")
-# target_link_libraries(UnorderedMap header_lib)
+
+if(BUILD_TESTING)
+    add_subdirectory(gtests)
+endif()
