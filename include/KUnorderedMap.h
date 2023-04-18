@@ -67,7 +67,6 @@ namespace ink {
         iterator end(); // O(1)
         const_iterator begin() const; // O(1)
         const_iterator end() const; // O(1)
-        // maybe it's possible to merge above and below const functions
         const_iterator cbegin() const; // O(1)
         const_iterator cend() const; // O(1)
 
@@ -135,9 +134,8 @@ namespace ink {
     }
 
     template<class Key, class T, class Hash>
-    KUnorderedMap<Key, T, Hash>::KUnorderedMap(KUnorderedMap&& other_map) noexcept
-    {
-        std::cout << "Move operator()" << "\n";
+    KUnorderedMap<Key, T, Hash>::KUnorderedMap(
+        KUnorderedMap&& other_map) noexcept {
         if (this == &other_map) return;
 
         move_handler(move(other_map));
@@ -147,7 +145,6 @@ namespace ink {
     KUnorderedMap<Key, T>& KUnorderedMap<Key, T, Hash>::operator=(
         KUnorderedMap&& other_map) noexcept {
 
-        std::cout << "Move operator=" << "\n";
         if (this == &other_map) return *this;
 
         move_handler(move(other_map));
@@ -204,7 +201,7 @@ namespace ink {
         m_is_empty = true;
         m_size = 0;
         m_used_bucket_count = 0;
-        hash_set.clear(); // O(n)
+        fill(hash_set.begin(), hash_set.end(), nullptr); // O(n)
     }
 
     template<class Key, class T, class Hash>
@@ -428,7 +425,9 @@ namespace ink {
 
     template<class Key, class T, class Hash>
     void KUnorderedMap<Key, T, Hash>::move_handler(KUnorderedMap&& other_map) {
-        nodes_unbinding();
+        if (size() != 0) {
+            nodes_unbinding();
+        }
         hash_set = std::move(other_map.hash_set);
         m_size = std::exchange(other_map.m_size, 0);
         m_capacity = std::exchange(other_map.m_capacity, 0);
@@ -452,13 +451,13 @@ namespace ink {
 
     template<class Key, class T, class Hash>
     void KUnorderedMap<Key, T, Hash>::nodes_unbinding() {
-        // ListNode nodes unbinding before ~Destructor and MoveCtor
+        // ListNode nodes unbinding before ~Destructor, MoveCtor and clear()
         // to prevent memory leaks due to nodes looped binding. 
         auto prev_it = m_begin;
-        auto it = prev_it->next;
         m_begin = nullptr;
         m_rbegin = nullptr;
         m_rend = nullptr;
+        auto it = prev_it->next;
         while (it != m_end) {
             prev_it->prev = nullptr;
             prev_it->next = nullptr;
