@@ -115,7 +115,6 @@ namespace ink {
 
     template<class Key, class T, class Hash>
     KUnorderedMap<Key, T, Hash>::KUnorderedMap(const KUnorderedMap& other_map) {
-        std::cout << "Copy operator()" << "\n";
         if (this == &other_map) return;
 
         copy_handler(other_map);
@@ -125,7 +124,6 @@ namespace ink {
     KUnorderedMap<Key, T>& KUnorderedMap<Key, T, Hash>::operator=(
         const KUnorderedMap& other_map) {
 
-        std::cout << "Copy operator=" << "\n";
         if (this == &other_map) return *this;
 
         copy_handler(other_map);
@@ -157,7 +155,7 @@ namespace ink {
         std::initializer_list<std::pair<const Key, T>> init_list) {
         // move through list
         // ???
-        throw std::runtime_error("not implemented");
+        throw std::runtime_error("Not implemented");
     }
 
     template<class Key, class T, class Hash>
