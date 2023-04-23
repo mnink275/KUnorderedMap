@@ -10,7 +10,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     set(CMAKE_CXX_STANDARD 17)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
 
-    enable_testing()
+    include(CTest)
 
     if(CMAKE_GENERATOR MATCHES "Visual Studio 17 2022")
         set_property(
