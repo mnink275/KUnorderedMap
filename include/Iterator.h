@@ -33,8 +33,11 @@ namespace ink {
         CommonIterator(const CommonIterator<Key, T, false, Hash>& non_const_it)
             : ptr(non_const_it.ptr) {}
 
-        std::conditional_t<IsConst, const std::pair<const Key, T>&,
-            std::pair<const Key, T>&> operator*() {
+        std::conditional_t<
+            IsConst,
+            const std::pair<const Key, T>&,
+            std::pair<const Key, T>&
+        > operator*() {
             return ptr->data_pair;
         }
 
@@ -64,7 +67,7 @@ namespace ink {
         }
 
     private:
-        std::conditional_t<IsConst, const pointer, pointer> ptr;
+        pointer ptr;
     };
 
 }
