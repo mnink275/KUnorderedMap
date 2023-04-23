@@ -110,9 +110,31 @@ TEST(UMapInitialization, HashPolicy) {
     doubleMap.maxLoadFactor(5.0f);
     EXPECT_EQ(doubleMap.maxLoadFactor(), 5.0f);
 }
-//
-//TEST(UMapInitialization, Iterators) {
-//    EXPECT_EQ(doubleMap.maxLoadFactor(), 2.0f);
-//    doubleMap.maxLoadFactor(5.0f);
-//    EXPECT_EQ(doubleMap.maxLoadFactor(), 5.0f);
-//}
+
+// iterator and const_iterator
+TEST(UMapInitialization, Iterators) {
+    ink::KUnorderedMap<int, int> iterator_test_map;
+    for (int i = 0; i < 10; i++) {
+        iterator_test_map[i] = i + 50;
+    }
+    auto it = iterator_test_map.begin();
+    auto const_it = iterator_test_map.cbegin();
+    for (size_t i = 0; i < 3; i++) {
+        ++it;
+        ++const_it;
+    }
+    EXPECT_EQ(it->second, 53);
+    EXPECT_EQ(const_it->second, 53);
+
+    auto begin_it = iterator_test_map.begin();
+    (*begin_it).second = 125;
+    EXPECT_EQ(iterator_test_map.begin()->second, 125);
+    // (*const_it).second = 125 <--- CE
+
+    for (size_t i = 0; i < 3; i++) {
+        --it;
+        --const_it;
+    }
+    EXPECT_EQ(it->second, 125);
+    EXPECT_EQ(const_it->second, 125);
+}
