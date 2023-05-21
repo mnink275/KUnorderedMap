@@ -145,7 +145,7 @@ namespace ink {
 
         if (this == &other_map) return *this;
 
-        move_handler(move(other_map));
+        move_handler(std::move(other_map));
 
         return *this;
     }
@@ -559,4 +559,4 @@ namespace ink {
         }
     }
 
-}
+}  // ink namespace
