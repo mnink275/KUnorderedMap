@@ -128,3 +128,10 @@ TEST(UMapMethod, Iterators) {
     EXPECT_EQ(it->second, 125);
     EXPECT_EQ(const_it->second, 125);
 }
+
+// Construction from InputIt
+TEST(UMapInitialization, ConstructFromIterators) {
+    std::vector<std::pair<int, int>> storage = { {1, 10} , {2, 20}, {3, 30} };
+    ink::KUnorderedMap<int, int> local_int_map(storage.begin(), storage.end());
+    EXPECT_EQ(local_int_map[2], 20);
+}

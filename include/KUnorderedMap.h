@@ -21,6 +21,9 @@ namespace ink {
         using iterator = CommonIterator<Key, T, false, Hash>;
         using const_iterator = CommonIterator<Key, T, true, Hash>;
 
+        template<class InputIt>
+        using iterator_category_t = typename std::iterator_traits<InputIt>::iterator_category;
+
     public:
         KUnorderedMap();
         ~KUnorderedMap();
@@ -32,6 +35,8 @@ namespace ink {
         KUnorderedMap<Key, T>& operator=(KUnorderedMap&& other_map) noexcept;
 
         KUnorderedMap(std::initializer_list<std::pair<const Key, T>> init_list);
+        template<class InputIt>
+        KUnorderedMap(InputIt left, InputIt last);
 
         // Capacity:
         size_t size() const; // O(1)
@@ -79,12 +84,12 @@ namespace ink {
         template<class CommonIt>
         CommonIt find_helper(const Key& key) const;
         template <class SomeKey>
-        T& emplace(SomeKey&& key);
+        iterator emplace(SomeKey&& key);
 
     private:
         std::vector<std::shared_ptr<ListNode>> hash_set;
-        size_t m_capacity;
         size_t m_size;
+        size_t m_capacity;
         // Unjustified usage of shared_ptr? It seems to me,
         // that raw pointers are better (lower memory costs and maybe performance).
         std::shared_ptr<ListNode> m_begin;
@@ -159,13 +164,21 @@ namespace ink {
     }
 
     template<class Key, class T, class Hash>
+    template<class InputIt>
+    KUnorderedMap<Key, T, Hash>::KUnorderedMap(InputIt left, InputIt last) : KUnorderedMap() {
+        for (; left != last; ++left) {
+            emplace(left->first)->second = left->second;
+        }
+    }
+
+    template<class Key, class T, class Hash>
     T& KUnorderedMap<Key, T, Hash>::operator[](const Key& key) {
-        return emplace(key);
+        return emplace(key)->second;
     }
 
     template<class Key, class T, class Hash>
     T& KUnorderedMap<Key, T, Hash>::operator[](Key&& key) {
-        return emplace(std::move(key));
+        return emplace(std::move(key))->second;
     }
 
     template<class Key, class T, class Hash>
@@ -491,7 +504,7 @@ namespace ink {
 
     template<class Key, class T, class Hash>
     template <class SomeKey>
-    T& KUnorderedMap<Key, T, Hash>::emplace(SomeKey&& key) {
+    typename KUnorderedMap<Key, T, Hash>::iterator KUnorderedMap<Key, T, Hash>::emplace(SomeKey&& key) {
         // check if it's time to rehash
         if (m_size > 0 && loadFactor() > m_max_load_factor) {
             m_capacity = 2 * m_capacity + 1;
@@ -526,7 +539,7 @@ namespace ink {
                 node->next = m_end;
             }
 
-            return node->data_pair.second;
+            return KUnorderedMap<Key, T, Hash>::iterator(node.get());
         }
         else {
             // if node with corresponding hash_val exists,
@@ -534,7 +547,7 @@ namespace ink {
             std::shared_ptr<ListNode> it = hash_set[hash_val];
             std::shared_ptr<ListNode> prev_it;
             while (it != m_end && it->hash_val == hash_val) {
-                if (it->data_pair.first == key) return it->data_pair.second;
+                if (it->data_pair.first == key) return KUnorderedMap<Key, T, Hash>::iterator(it.get());
                 prev_it = it;
                 it = it->next;
             }
@@ -555,7 +568,7 @@ namespace ink {
                 node->next = m_end;
             }
 
-            return node->data_pair.second;
+            return KUnorderedMap<Key, T, Hash>::iterator(node.get());
         }
     }
 
