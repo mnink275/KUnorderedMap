@@ -35,8 +35,13 @@ namespace ink {
         KUnorderedMap<Key, T>& operator=(KUnorderedMap&& other_map) noexcept;
 
         KUnorderedMap(std::initializer_list<std::pair<const Key, T>> init_list);
-        template<class InputIt>
-        KUnorderedMap(InputIt left, InputIt last);
+        template<class InputIt, class ExtraT = std::enable_if_t< // SFINAE overload
+            std::is_base_of_v<std::input_iterator_tag, iterator_category_t<InputIt>>>>
+        KUnorderedMap(InputIt left, InputIt last) : KUnorderedMap() {
+            for (; left != last; ++left) {
+                emplace(left->first)->second = left->second;
+            }
+        }
 
         // Capacity:
         size_t size() const; // O(1)
@@ -163,13 +168,18 @@ namespace ink {
         throw std::runtime_error("Not implemented");
     }
 
-    template<class Key, class T, class Hash>
+    /*template<class Key, class T, class Hash>
     template<class InputIt>
-    KUnorderedMap<Key, T, Hash>::KUnorderedMap(InputIt left, InputIt last) : KUnorderedMap() {
-        for (; left != last; ++left) {
-            emplace(left->first)->second = left->second;
+    using interator_category_t = typename std::iterator_traits<It>::iterator_category;
+    KUnorderedMap<Key, T, Hash>::KUnorderedMap(InputIt first, InputIt last) :
+        m_capacity(239 + m_size), m_size(std::distance(first, last)), m_begin(nullptr), m_end(nullptr),
+        m_rbegin(nullptr), m_rend(nullptr), m_max_load_factor(2.0f),
+        m_used_bucket_count(0), m_is_empty(true) {
+        hash_set.resize(m_capacity, nullptr);
+        for ( ; first != last; ++first) {
+            emplace(first->first) = first->second;
         }
-    }
+    }*/
 
     template<class Key, class T, class Hash>
     T& KUnorderedMap<Key, T, Hash>::operator[](const Key& key) {

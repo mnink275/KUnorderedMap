@@ -134,4 +134,22 @@ TEST(UMapInitialization, ConstructFromIterators) {
     std::vector<std::pair<int, int>> storage = { {1, 10} , {2, 20}, {3, 30} };
     ink::KUnorderedMap<int, int> local_int_map(storage.begin(), storage.end());
     EXPECT_EQ(local_int_map[2], 20);
+
+    struct stateless {
+        stateless& operator=(const stateless& rhs) { return *this; }
+        bool operator==(const stateless& rhs) { return true; }
+    };
+
+#if 0
+    class BadOutputIterator {
+    public:
+    	using iterator_category = std::output_iterator_tag;
+    };
+
+    BadOutputIterator out_it;
+
+    // thanks for SFINAE
+    ink::KUnorderedMap<stateless, stateless> test(out_it, out_it);
+    // this is CE --------------------------------^^^^^^^^^^^^^^^
+#endif
 }
